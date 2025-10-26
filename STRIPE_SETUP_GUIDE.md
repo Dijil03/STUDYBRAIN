@@ -6,7 +6,7 @@ Add these to your `backend/.env` file:
 
 ```env
 # Stripe Configuration
-STRIPE_SECRET_KEY=sk_test_51SKjIII6A2TpsaBngiqeZ9heZsuf3IUXjb8FZTKpRQO2DGFWJdmbZrKAke199WIWlazL2eYUQkR6Z9q6cggHT3je00hWBbGdIV
+STRIPE_SECRET_KEY=sk_test_your_stripe_test_secret_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 
 # Frontend URL
