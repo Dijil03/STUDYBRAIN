@@ -1,0 +1,340 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom slider styles for music player */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-track {
+  background: rgba(255, 255, 255, 0.1);
+  height: 4px;
+  border-radius: 2px;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
+}
+
+.slider::-moz-range-track {
+  background: rgba(255, 255, 255, 0.1);
+  height: 4px;
+  border-radius: 2px;
+  border: none;
+}
+
+.slider::-moz-range-thumb {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
+}
+
+/* Professional Google Docs-like editor styles */
+.demo-wrapper {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: none !important;
+}
+
+.demo-editor {
+  height: 100% !important;
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 40px 60px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: #202124 !important;
+  background: #ffffff !important;
+  font-family: 'Google Sans', 'Roboto', Arial, sans-serif !important;
+  max-width: 100% !important;
+}
+
+.demo-editor .DraftEditor-root {
+  height: 100% !important;
+  min-height: calc(100vh - 200px) !important;
+}
+
+.demo-editor .DraftEditor-editorContainer {
+  height: 100% !important;
+}
+
+.demo-editor .public-DraftEditor-content {
+  height: 100% !important;
+  min-height: calc(100vh - 200px) !important;
+  color: #202124 !important;
+  font-family: 'Google Sans', 'Roboto', Arial, sans-serif !important;
+}
+
+/* Font size support */
+.demo-editor .public-DraftEditor-content span[style*="font-size"] {
+  font-size: inherit !important;
+}
+
+/* Support for Draft.js font size entities */
+.demo-editor .public-DraftEditor-content span[data-font-size] {
+  font-size: inherit !important;
+}
+
+/* Ensure font size changes are applied */
+.demo-editor .public-DraftEditor-content span {
+  font-size: inherit !important;
+}
+
+.demo-editor .public-DraftEditor-content div {
+  font-size: inherit !important;
+}
+
+.demo-editor .public-DraftEditor-content p {
+  font-size: inherit !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-8 {
+  font-size: 8px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-9 {
+  font-size: 9px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-10 {
+  font-size: 10px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-11 {
+  font-size: 11px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-12 {
+  font-size: 12px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-14 {
+  font-size: 14px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-16 {
+  font-size: 16px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-18 {
+  font-size: 18px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-24 {
+  font-size: 24px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-30 {
+  font-size: 30px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-36 {
+  font-size: 36px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-48 {
+  font-size: 48px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-60 {
+  font-size: 60px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-72 {
+  font-size: 72px !important;
+}
+
+.demo-editor .public-DraftEditor-content .font-size-96 {
+  font-size: 96px !important;
+}
+
+/* Professional toolbar styling */
+.rdw-editor-toolbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #dadce0 !important;
+  padding: 8px 16px !important;
+  border-radius: 0 !important;
+}
+
+.rdw-option-wrapper {
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  margin: 0 2px !important;
+  padding: 4px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.rdw-option-wrapper:hover {
+  background: #f8f9fa !important;
+  border-color: #dadce0 !important;
+}
+
+.rdw-option-active {
+  background: #e8f0fe !important;
+  border-color: #1a73e8 !important;
+}
+
+.rdw-dropdown-wrapper {
+  border: 1px solid #dadce0 !important;
+  border-radius: 4px !important;
+  background: #ffffff !important;
+  min-width: 100px !important;
+}
+
+.rdw-dropdown-selectedtext {
+  color: #202124 !important;
+  font-size: 13px !important;
+  padding: 4px 8px !important;
+}
+
+.rdw-dropdown-optionwrapper {
+  background: #ffffff !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.rdw-dropdown-option {
+  color: #202124 !important;
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+}
+
+.rdw-dropdown-option:hover {
+  background: #f8f9fa !important;
+}
+
+/* Color picker styling */
+.rdw-colorpicker-wrapper {
+  border: 1px solid #dadce0 !important;
+  border-radius: 4px !important;
+  background: #ffffff !important;
+}
+
+.rdw-colorpicker-modal {
+  background: #ffffff !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  padding: 12px !important;
+}
+
+/* Link editor styling */
+.rdw-link-wrapper {
+  border: 1px solid #dadce0 !important;
+  border-radius: 4px !important;
+  background: #ffffff !important;
+}
+
+.rdw-link-modal {
+  background: #ffffff !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  padding: 16px !important;
+}
+
+/* Emoji picker styling */
+.rdw-emoji-wrapper {
+  border: 1px solid #dadce0 !important;
+  border-radius: 4px !important;
+  background: #ffffff !important;
+}
+
+.rdw-emoji-modal {
+  background: #ffffff !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  padding: 12px !important;
+}
+
+.demo-editor .DraftEditor-root {
+  height: 100% !important;
+  min-height: calc(100vh - 120px) !important;
+}
+
+.demo-editor .DraftEditor-editorContainer {
+  height: 100% !important;
+}
+
+.demo-editor .public-DraftEditor-content {
+  height: 100% !important;
+  min-height: calc(100vh - 120px) !important;
+}
+
+/* Hide scrollbars for cleaner look */
+.demo-editor::-webkit-scrollbar {
+  width: 6px;
+}
+
+.demo-editor::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.demo-editor::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.demo-editor::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+
+
+
+body {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Flashcard 3D flip helpers */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}

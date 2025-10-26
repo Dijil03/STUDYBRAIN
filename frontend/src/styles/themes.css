@@ -1,0 +1,205 @@
+/* Theme Variables */
+:root {
+  --light-bg-primary: #ffffff;
+  --light-bg-secondary: #f8fafc;
+  --light-bg-tertiary: #f1f5f9;
+  --light-text-primary: #1e293b;
+  --light-text-secondary: #64748b;
+  --light-text-tertiary: #94a3b8;
+  --light-border: #e2e8f0;
+  --light-accent: #3b82f6;
+  --light-accent-hover: #2563eb;
+  --light-shadow: rgba(0, 0, 0, 0.1);
+  --light-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  --dark-bg-primary: #0f172a;
+  --dark-bg-secondary: #1e293b;
+  --dark-bg-tertiary: #334155;
+  --dark-text-primary: #f1f5f9;
+  --dark-text-secondary: #cbd5e1;
+  --dark-text-tertiary: #94a3b8;
+  --dark-border: #475569;
+  --dark-accent: #60a5fa;
+  --dark-accent-hover: #3b82f6;
+  --dark-shadow: rgba(0, 0, 0, 0.3);
+  --dark-gradient: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+  
+  --solarized-bg-primary: #fdf6e3;
+  --solarized-bg-secondary: #eee8d5;
+  --solarized-bg-tertiary: #f4f1e8;
+  --solarized-text-primary: #586e75;
+  --solarized-text-secondary: #657b83;
+  --solarized-text-tertiary: #93a1a1;
+  --solarized-border: #d3d3d3;
+  --solarized-accent: #268bd2;
+  --solarized-accent-hover: #1e6ba8;
+  --solarized-shadow: rgba(0, 0, 0, 0.1);
+  --solarized-gradient: linear-gradient(135deg, #268bd2 0%, #2aa198 100%);
+}
+
+/* Light Theme */
+.theme-light {
+  --bg-primary: var(--light-bg-primary);
+  --bg-secondary: var(--light-bg-secondary);
+  --bg-tertiary: var(--light-bg-tertiary);
+  --text-primary: var(--light-text-primary);
+  --text-secondary: var(--light-text-secondary);
+  --text-tertiary: var(--light-text-tertiary);
+  --border: var(--light-border);
+  --accent: var(--light-accent);
+  --accent-hover: var(--light-accent-hover);
+  --shadow: var(--light-shadow);
+  --gradient: var(--light-gradient);
+}
+
+/* Dark Theme */
+.theme-dark {
+  --bg-primary: var(--dark-bg-primary);
+  --bg-secondary: var(--dark-bg-secondary);
+  --bg-tertiary: var(--dark-bg-tertiary);
+  --text-primary: var(--dark-text-primary);
+  --text-secondary: var(--dark-text-secondary);
+  --text-tertiary: var(--dark-text-tertiary);
+  --border: var(--dark-border);
+  --accent: var(--dark-accent);
+  --accent-hover: var(--dark-accent-hover);
+  --shadow: var(--dark-shadow);
+  --gradient: var(--dark-gradient);
+}
+
+/* Solarized Theme */
+.theme-solarized {
+  --bg-primary: var(--solarized-bg-primary);
+  --bg-secondary: var(--solarized-bg-secondary);
+  --bg-tertiary: var(--solarized-bg-tertiary);
+  --text-primary: var(--solarized-text-primary);
+  --text-secondary: var(--solarized-text-secondary);
+  --text-tertiary: var(--solarized-text-tertiary);
+  --border: var(--solarized-border);
+  --accent: var(--solarized-accent);
+  --accent-hover: var(--solarized-accent-hover);
+  --shadow: var(--solarized-shadow);
+  --gradient: var(--solarized-gradient);
+}
+
+/* Global Theme Classes */
+.theme-light {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.theme-dark {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.theme-solarized {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Theme-aware components */
+.theme-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  box-shadow: 0 4px 6px -1px var(--shadow);
+}
+
+.theme-button {
+  background-color: var(--accent);
+  color: white;
+  border: 1px solid var(--accent);
+  transition: all 0.3s ease;
+}
+
+.theme-button:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.theme-input {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.theme-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.theme-navbar {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.theme-bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.theme-bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.theme-bg-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+/* Gradient backgrounds for different themes */
+.theme-light .gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.theme-dark .gradient-bg {
+  background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+}
+
+.theme-solarized .gradient-bg {
+  background: linear-gradient(135deg, #268bd2 0%, #2aa198 100%);
+}
+
+/* Navbar theme adjustments */
+.theme-light .navbar-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .navbar-glass {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.theme-solarized .navbar-glass {
+  background: rgba(253, 246, 227, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(211, 211, 211, 0.3);
+}
+
+/* Page background themes */
+.theme-light .page-bg {
+  background: radial-gradient(circle at 10% 20%, rgb(255, 237, 246) 0%, rgb(250, 240, 255) 55%, rgb(220, 232, 255) 100%);
+}
+
+.theme-dark .page-bg {
+  background: radial-gradient(circle at 10% 20%, rgb(15, 23, 42) 0%, rgb(30, 41, 59) 55%, rgb(51, 65, 85) 100%);
+}
+
+.theme-solarized .page-bg {
+  background: radial-gradient(circle at 10% 20%, rgb(253, 246, 227) 0%, rgb(238, 232, 213) 55%, rgb(244, 241, 232) 100%);
+}

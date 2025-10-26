@@ -1,0 +1,29 @@
+{
+  "name": "studybrain-app",
+  "version": "1.0.0",
+  "description": "StudyBrain - AI-powered study companion application",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "install-deps": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd backend && npm start",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "test": "cd backend && npm test && cd ../frontend && npm test"
+  },
+  "keywords": [
+    "study",
+    "education",
+    "ai",
+    "productivity",
+    "learning"
+  ],
+  "author": "StudyBrain Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

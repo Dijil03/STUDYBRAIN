@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Docs Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            background: #333;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 Google Docs Integration Test</h1>
+
+    <div class="test-section">
+        <h2>1. Test Backend Connection</h2>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connection-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test User Token (Replace with your user ID)</h2>
+        <input type="text" id="userId" placeholder="Enter user ID" value="68fa7c32369df590880df884"
+            style="width: 300px; padding: 8px; margin: 5px;">
+        <button onclick="testUserToken()">Test User Token</button>
+        <div id="token-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Document Creation</h2>
+        <input type="text" id="docTitle" placeholder="Document title" value="Test Document"
+            style="width: 300px; padding: 8px; margin: 5px;">
+        <button onclick="testCreateDocument()">Create Document</button>
+        <div id="create-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Document Listing</h2>
+        <button onclick="testListDocuments()">List Documents</button>
+        <div id="list-result" class="result"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5001';
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/google-docs/test`);
+                const data = await response.json();
+                resultDiv.textContent = `✅ Connection successful!\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.textContent = `❌ Connection failed: ${error.message}`;
+            }
+        }
+
+        async function testUserToken() {
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('token-result');
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/google-docs/${userId}/token`);
+                const data = await response.json();
+                resultDiv.textContent = `📋 Token response:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.textContent = `❌ Token test failed: ${error.message}`;
+            }
+        }
+
+        async function testCreateDocument() {
+            const userId = document.getElementById('userId').value;
+            const title = document.getElementById('docTitle').value;
+            const resultDiv = document.getElementById('create-result');
+            resultDiv.textContent = 'Creating document...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/google-docs/${userId}/documents`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: 'This is a test document created from StudyBrain!'
+                    })
+                });
+                const data = await response.json();
+                resultDiv.textContent = `📄 Create response:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.textContent = `❌ Create failed: ${error.message}`;
+            }
+        }
+
+        async function testListDocuments() {
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('list-result');
+            resultDiv.textContent = 'Loading documents...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/google-docs/${userId}/documents`);
+                const data = await response.json();
+                resultDiv.textContent = `📋 Documents:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.textContent = `❌ List failed: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+
+</html>
