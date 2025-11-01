@@ -191,9 +191,10 @@ export const sendMessage = async (req, res) => {
     if (error.message.includes('HF_TOKEN') || error.message.includes('OPENAI_API_KEY')) {
       res.write(`data: ${JSON.stringify({
         type: 'error',
-        content: 'AI service is not configured. Please contact support.',
+        content: 'AI service is currently unavailable. The AI Assistant feature requires a Hugging Face token to be configured. Please contact support if you need help setting this up.',
         isComplete: true,
-        error: 'Missing HF_TOKEN environment variable'
+        error: 'Missing HF_TOKEN environment variable',
+        helpUrl: 'https://huggingface.co/settings/tokens'
       })}\n\n`);
     } else {
       // Send error in streaming format
