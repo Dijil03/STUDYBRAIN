@@ -3,32 +3,67 @@ import MyWorld from "../models/myworld.model.js";
 // Get full My World data
 export const getWorld = async (req, res) => {
   try {
-    let world = await MyWorld.findOne({ userId: req.params.userId });
+    const userId = req.params.userId;
+    
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Try to find existing world
+    let world = await MyWorld.findOne({ userId: userId });
 
     // If no world exists, create a default one
     if (!world) {
-      world = new MyWorld({
-        userId: req.params.userId,
-        goals: [],
-        progress: {
-          homework: 0,
-          habits: 0,
-          skills: 0
-        },
-        moodBoard: [],
-        achievements: [],
-        journal: [],
-        soundtrack: [],
-        theme: "light",
-        motivation: "Keep going, you're doing great! Every step forward is progress."
-      });
-      await world.save();
+      try {
+        world = new MyWorld({
+          userId: userId,
+          goals: [],
+          progress: {
+            homework: 0,
+            habits: 0,
+            skills: 0
+          },
+          moodBoard: [],
+          achievements: [],
+          journal: [],
+          soundtrack: [],
+          theme: "light",
+          motivation: "Keep going, you're doing great! Every step forward is progress."
+        });
+        await world.save();
+        console.log('Created default MyWorld for userId:', userId);
+      } catch (createErr) {
+        console.error("Error creating default MyWorld:", createErr);
+        // If we can't create, return a default object
+        return res.status(200).json({
+          userId: userId,
+          goals: [],
+          progress: { homework: 0, habits: 0, skills: 0 },
+          moodBoard: [],
+          achievements: [],
+          journal: [],
+          soundtrack: [],
+          theme: "light",
+          motivation: "Keep going, you're doing great! Every step forward is progress."
+        });
+      }
     }
 
     res.status(200).json(world);
   } catch (err) {
     console.error("Error fetching My World:", err);
-    res.status(500).json({ error: "Failed to fetch My World" });
+    // Return a default response instead of 500 to prevent dashboard errors
+    res.status(200).json({
+      userId: req.params.userId || null,
+      goals: [],
+      progress: { homework: 0, habits: 0, skills: 0 },
+      moodBoard: [],
+      achievements: [],
+      journal: [],
+      soundtrack: [],
+      theme: "light",
+      motivation: "Keep going, you're doing great! Every step forward is progress."
+    });
   }
 };
 
