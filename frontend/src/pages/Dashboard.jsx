@@ -164,33 +164,60 @@ const Dashboard = () => {
 
         console.log('Fetching data for userId:', currentUserId);
 
-        const [worldRes, progressRes, logRes, chartRes, classroomRes] = await Promise.all([
+        // Use Promise.allSettled so one failure doesn't break everything
+        const results = await Promise.allSettled([
           api.get(`/myworld/${currentUserId}`),
           api.get(`/homework/progress/${currentUserId}`),
           api.get(`/homeworklog/${currentUserId}`, { params: { weekStart } }),
           api.get(`/homework/chart/${currentUserId}`),
           api.get(`/google-classroom/${currentUserId}/assignments`)
-            .then(res => {
-              if (res.data.needsReauth || res.status === 403) {
-                setNeedsClassroomAuth(true);
-                setHasClassroomError(true);
-                if (res.data.authUrl) {
-                  window._classroomAuthUrl = res.data.authUrl;
-                }
-              }
-              return res.data;
-            })
-            .catch((err) => {
-              if (err.response?.status === 403 || err.response?.data?.needsReauth) {
-                setNeedsClassroomAuth(true);
-                setHasClassroomError(true);
-                if (err.response?.data?.authUrl) {
-                  window._classroomAuthUrl = err.response.data.authUrl;
-                }
-              }
-              return { success: false, assignments: [] };
-            })
         ]);
+        
+        // Process results - handle both fulfilled and rejected promises
+        const worldRes = results[0].status === 'fulfilled' ? results[0].value : { data: null };
+        const progressRes = results[1].status === 'fulfilled' ? results[1].value : { data: null };
+        const logRes = results[2].status === 'fulfilled' ? results[2].value : { data: { tasks: [] } };
+        const chartRes = results[3].status === 'fulfilled' ? results[3].value : { data: { labels: [], data: [] } };
+        const classroomRes = results[4].status === 'fulfilled' 
+          ? results[4].value 
+          : { data: { success: false, assignments: [] } };
+        
+        // Handle Google Classroom response
+        if (classroomRes.data?.needsReauth || classroomRes.status === 403) {
+          setNeedsClassroomAuth(true);
+          setHasClassroomError(true);
+          if (classroomRes.data?.authUrl) {
+            window._classroomAuthUrl = classroomRes.data.authUrl;
+          }
+        }
+        
+        // Handle Google Classroom errors
+        if (results[4].status === 'rejected') {
+          const err = results[4].reason;
+          if (err?.response?.status === 403 || err?.response?.data?.needsReauth) {
+            setNeedsClassroomAuth(true);
+            setHasClassroomError(true);
+            if (err.response?.data?.authUrl) {
+              window._classroomAuthUrl = err.response.data.authUrl;
+            }
+          }
+        }
+        
+        // Check if critical API calls failed
+        const criticalFailures = [];
+        if (results[0].status === 'rejected') {
+          console.error('Failed to load MyWorld:', results[0].reason);
+          criticalFailures.push('MyWorld');
+        }
+        if (results[1].status === 'rejected') {
+          console.error('Failed to load progress:', results[1].reason);
+          criticalFailures.push('Progress');
+        }
+        
+        // Only show error if critical APIs failed (not Google Classroom)
+        if (criticalFailures.length > 0 && !hasClassroomError) {
+          setError(`Failed to load ${criticalFailures.join(', ')}. Please try again.`);
+        }
         
         setWorld(worldRes.data);
         setProgress(progressRes.data);
@@ -210,8 +237,14 @@ const Dashboard = () => {
         setHomeworkChart(chartRes.data || { labels: [], data: [] });
         
         // Process Google Classroom data
-        if (classroomRes.success && classroomRes.assignments) {
-          const assignments = classroomRes.assignments;
+        const classroomData = results[4].status === 'fulfilled' 
+          ? results[4].value.data 
+          : (results[4].status === 'rejected' && results[4].reason?.response?.data 
+            ? results[4].reason.response.data 
+            : { success: false, assignments: [] });
+            
+        if (classroomData.success && classroomData.assignments) {
+          const assignments = classroomData.assignments;
           const now = new Date();
           const upcoming = assignments.filter(assignment => {
             if (!assignment.dueDate) return false;
@@ -235,17 +268,20 @@ const Dashboard = () => {
       } catch (err) {
         console.error("Error loading dashboard:", err);
         
-        // Check if error is related to Google Classroom auth
-        const isClassroomAuthError = err.message?.includes('Google Classroom') || 
-                                     err.response?.status === 403 ||
-                                     hasClassroomError;
-        
-        if (!isClassroomAuthError && !needsClassroomAuth) {
-          setError("Failed to load dashboard data. Please try again.");
-        } else {
-          // Just log it, don't show error - auth prompt will show instead
-          console.log('Google Classroom requires authorization');
-          setHasClassroomError(true);
+        // Only show error if it's not related to Google Classroom and not already handled
+        if (!hasClassroomError && !needsClassroomAuth) {
+          // Check if it's a critical error (not just Google Classroom)
+          const isClassroomAuthError = err.message?.includes('Google Classroom') || 
+                                       err.response?.status === 403;
+          
+          if (!isClassroomAuthError) {
+            setError("Failed to load dashboard data. Please try again.");
+          } else {
+            // Google Classroom error - don't show error, show auth prompt instead
+            setNeedsClassroomAuth(true);
+            setHasClassroomError(true);
+            console.log('Google Classroom requires authorization');
+          }
         }
       } finally {
         setLoading(false);
