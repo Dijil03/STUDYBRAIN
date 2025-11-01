@@ -233,6 +233,12 @@ const Navbar = () => {
     { name: 'Pricing', path: '/pricing', icon: CreditCard, color: 'text-yellow-400' },
   ];
 
+  // Debug: Verify Pricing is in the array
+  useEffect(() => {
+    console.log('🔍 Navbar mainNavLinks:', mainNavLinks.map(l => l.name));
+    console.log('🔍 Pricing exists?', mainNavLinks.some(l => l.name === 'Pricing'));
+  }, []);
+
   const toolsDropdown = [
     { name: 'AI Tutor', path: '/ai-tutor', icon: Sparkles, color: 'text-indigo-400' },
     { name: 'Flashcards', path: '/flashcard', icon: Zap, color: 'text-yellow-400' },
@@ -421,9 +427,11 @@ const Navbar = () => {
           </Link>
 
           {/* Enhanced Desktop Navigation - Better responsive */}
-          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 flex-1 justify-center mx-2 xl:mx-4 flex-wrap">
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 flex-1 justify-center mx-2 xl:mx-4">
             {mainNavLinks.map((link, index) => {
               const Icon = link.icon;
+              // Highlight Pricing link to make it more visible
+              const isPricing = link.name === 'Pricing';
               return (
                 <motion.div
                   key={link.name}
@@ -433,12 +441,15 @@ const Navbar = () => {
                   whileHover={{ y: -3, scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="flex-shrink-0"
+                  style={{ display: 'block' }} // Force display
                 >
                   <Link
                     to={link.path}
                     className={`relative flex items-center space-x-1.5 xl:space-x-2 2xl:space-x-3 px-2 xl:px-3 2xl:px-4 py-2 xl:py-2.5 2xl:py-3 rounded-lg xl:rounded-xl 2xl:rounded-2xl font-semibold transition-all duration-300 group overflow-hidden flex-shrink-0 ${
                       isActive(link.path)
                         ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white shadow-2xl border border-white/20'
+                        : isPricing 
+                        ? 'text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 hover:shadow-lg border border-yellow-500/30'
                         : 'text-white/70 hover:text-white hover:bg-white/10 hover:shadow-lg'
                     }`}
                   >
@@ -449,9 +460,9 @@ const Navbar = () => {
                       }}
                       transition={{ duration: 2, repeat: isActive(link.path) ? Infinity : 0 }}
                     >
-                      <Icon className={`w-4 h-4 xl:w-5 xl:h-5 ${isActive(link.path) ? 'text-white' : link.color} group-hover:scale-110 transition-transform`} />
+                      <Icon className={`w-4 h-4 xl:w-5 xl:h-5 ${isActive(link.path) ? 'text-white' : (isPricing ? 'text-yellow-400' : link.color)} group-hover:scale-110 transition-transform`} />
                     </motion.div>
-                    <span className="text-xs xl:text-sm font-medium whitespace-nowrap">{link.name}</span>
+                    <span className={`text-xs xl:text-sm font-medium whitespace-nowrap ${isPricing ? 'font-bold' : ''}`}>{link.name}</span>
                     
                     {isActive(link.path) && (
                       <motion.div
