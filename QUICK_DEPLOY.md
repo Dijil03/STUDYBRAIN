@@ -47,6 +47,12 @@ EMAIL_PASS=your_gmail_app_password
    - **Build Command**: `npm install`
    - **Start Command**: `npm start`
 5. Click **"Environment"** tab → Add each variable from step 1:
+   
+   **Required Google OAuth variables:**
+   - `GOOGLE_CLIENT_ID` = Your Google OAuth Client ID
+   - `GOOGLE_CLIENT_SECRET` = Your Google OAuth Client Secret
+   
+   (Get these from Google Cloud Console → APIs & Services → Credentials)
    - Click **"Add Environment Variable"**
    - Enter variable name (e.g., `NODE_ENV`)
    - Enter value (e.g., `production`)
@@ -84,6 +90,18 @@ EMAIL_PASS=your_gmail_app_password
 7. Wait for deployment (1-2 minutes)
 8. **Copy the URL**: `https://your-app.vercel.app`
 
+### How to Redeploy After Adding Environment Variables
+
+If you added environment variables after the initial deployment:
+
+1. Go to your project in Vercel Dashboard
+2. Click **"Deployments"** tab
+3. Click the **three dots (⋯)** on the latest deployment
+4. Select **"Redeploy"**
+5. Wait 1-2 minutes for redeploy to complete
+
+**Alternative**: Push any commit to GitHub (even a small change) and Vercel will auto-redeploy.
+
 ---
 
 ### 4. Connect Frontend to Backend
@@ -113,17 +131,38 @@ EMAIL_PASS=your_gmail_app_password
 
 ---
 
-### 6. Update Google OAuth
+### 6. Configure Google OAuth for Production
+
+#### Step A: Update OAuth Consent Screen (Allow All Users)
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. APIs & Services → Credentials
-3. Edit your OAuth 2.0 Client
-4. Update:
-   - **Authorized JavaScript origins**:
-     - `https://your-app.vercel.app`
-   - **Authorized redirect URIs**:
-     - `https://your-backend.onrender.com/api/auth/google/callback`
-5. Save
+2. **APIs & Services** → **OAuth consent screen**
+3. If it says **"Testing"**, you need to publish it:
+   - Click **"PUBLISH APP"** button
+   - Click **"CONFIRM"** to make it public
+   - **Note**: This allows ANY Google user to sign in (not just test users)
+
+#### Step B: Update OAuth Credentials (Production URLs)
+
+1. Go to **APIs & Services** → **Credentials**
+2. Click on your **OAuth 2.0 Client ID** to edit
+3. Add **Authorized JavaScript origins**:
+   - `https://your-app.vercel.app` (your Vercel frontend URL)
+   - Keep `http://localhost:5173` if you want local development
+4. Add **Authorized redirect URIs**:
+   - `https://your-backend.onrender.com/api/auth/google/callback` (your Render backend)
+   - Keep `http://localhost:5001/api/auth/google/callback` if you want local development
+5. Click **"SAVE"**
+
+#### Step C: Ensure Required APIs Are Enabled
+
+1. Go to **APIs & Services** → **Library**
+2. Search for and enable:
+   - ✅ **Google+ API** (or Google Identity)
+   - ✅ **Google Drive API** (for Google Docs integration)
+   - ✅ **Google Classroom API** (for Classroom integration)
+
+**Important**: After publishing your OAuth consent screen, it may take a few minutes for changes to propagate.
 
 ---
 
