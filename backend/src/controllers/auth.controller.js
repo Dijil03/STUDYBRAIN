@@ -129,22 +129,49 @@ export const googleClassroomAuth = (req, res, next) => {
 };
 
 export const googleCallback = (req, res, next) => {
+  // Get client URL with fallback
+  const getClientUrl = () => {
+    if (process.env.CLIENT_URL) {
+      return process.env.CLIENT_URL.replace(/\/$/, ''); // Remove trailing slash
+    }
+    if (process.env.FRONTEND_URL) {
+      return process.env.FRONTEND_URL.replace(/\/$/, ''); // Remove trailing slash
+    }
+    if (process.env.NODE_ENV === 'production') {
+      console.error('⚠️ CLIENT_URL and FRONTEND_URL not set in production!');
+      return ''; // Will cause error but at least won't be undefined
+    }
+    return 'http://localhost:5173'; // Development fallback
+  };
+
+  const clientUrl = getClientUrl();
+
   passport.authenticate('google', (err, user, info) => {
     if (err) {
       console.error('Google OAuth error:', err);
-      return res.redirect(`${process.env.CLIENT_URL}/login?error=${encodeURIComponent('Authentication failed')}`);
+      const redirectUrl = clientUrl 
+        ? `${clientUrl}/login?error=${encodeURIComponent('Authentication failed')}`
+        : '/login?error=' + encodeURIComponent('Authentication failed');
+      return res.redirect(redirectUrl);
     }
     if (!user) {
       console.error('No user returned from Google OAuth');
-      return res.redirect(`${process.env.CLIENT_URL}/login?error=${encodeURIComponent('Authentication failed')}`);
+      const redirectUrl = clientUrl 
+        ? `${clientUrl}/login?error=${encodeURIComponent('Authentication failed')}`
+        : '/login?error=' + encodeURIComponent('Authentication failed');
+      return res.redirect(redirectUrl);
     }
 
     console.log('Google OAuth successful, user:', user);
+    console.log('Redirecting to:', clientUrl || 'CLIENT_URL not set');
 
     req.login(user, (err) => {
       if (err) {
         console.error('Session login error:', err);
-        return res.redirect(`${process.env.CLIENT_URL}/login?error=${encodeURIComponent('Login failed')}`);
+        const redirectUrl = clientUrl 
+          ? `${clientUrl}/login?error=${encodeURIComponent('Login failed')}`
+          : '/login?error=' + encodeURIComponent('Login failed');
+        return res.redirect(redirectUrl);
       }
 
       // Generate JWT token
@@ -160,7 +187,20 @@ export const googleCallback = (req, res, next) => {
         profilePicture: user.profilePicture
       };
 
-      return res.redirect(`${process.env.CLIENT_URL}/dashboard?success=${encodeURIComponent('Login successful')}&user=${encodeURIComponent(JSON.stringify(userData))}`);
+      const successParams = `success=${encodeURIComponent('Login successful')}&user=${encodeURIComponent(JSON.stringify(userData))}`;
+      
+      if (!clientUrl) {
+        console.error('⚠️ CLIENT_URL not set! Cannot redirect properly.');
+        return res.status(500).json({
+          success: false,
+          message: 'Configuration error: CLIENT_URL not set',
+          user: userData
+        });
+      }
+
+      const redirectUrl = `${clientUrl}/dashboard?${successParams}`;
+      console.log('Redirecting to dashboard:', redirectUrl);
+      return res.redirect(redirectUrl);
     });
   })(req, res, next);
 };
