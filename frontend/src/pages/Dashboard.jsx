@@ -204,18 +204,19 @@ const Dashboard = () => {
         }
         
         // Check if critical API calls failed
-        // Note: MyWorld is non-critical - if it fails, we just use null/default data
+        // Note: MyWorld and Progress are non-critical - if they fail, we just use default/null data
         const criticalFailures = [];
         if (results[0].status === 'rejected') {
           console.warn('Failed to load MyWorld (non-critical):', results[0].reason);
           // MyWorld is non-critical, so we just use default/null data
         }
         if (results[1].status === 'rejected') {
-          console.error('Failed to load progress:', results[1].reason);
-          criticalFailures.push('Progress');
+          console.warn('Failed to load progress (non-critical):', results[1].reason);
+          // Progress is non-critical, so we just use default/null data
         }
         
-        // Only show error if critical APIs failed (not Google Classroom, not MyWorld)
+        // Only show error if truly critical APIs failed (not Google Classroom, not MyWorld, not Progress)
+        // Currently no APIs are considered critical - dashboard should always load
         if (criticalFailures.length > 0 && !hasClassroomError) {
           setError(`Failed to load ${criticalFailures.join(', ')}. Please try again.`);
         }
