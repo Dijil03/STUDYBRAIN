@@ -91,27 +91,33 @@ const Navbar = () => {
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        isMenuOpen ||
-        isUserMenuOpen ||
-        isToolsOpen
-      ) {
-        const target = event.target;
-        if (
-          !target.closest('[data-navbar]') &&
-          !target.closest('[data-menu]') &&
-          !target.closest('[data-user-menu]') &&
-          !target.closest('[data-tools-menu]')
-        ) {
-          setIsMenuOpen(false);
-          setIsUserMenuOpen(false);
-          setIsToolsOpen(false);
-        }
+      const target = event.target;
+      
+      // Don't close if clicking on navbar elements
+      if (target.closest('[data-navbar]') || 
+          target.closest('[data-menu]') || 
+          target.closest('[data-user-menu]') || 
+          target.closest('[data-tools-menu]')) {
+        return;
+      }
+      
+      // Close menus if clicking outside
+      if (isMenuOpen) {
+        setIsMenuOpen(false);
+      }
+      if (isUserMenuOpen) {
+        setIsUserMenuOpen(false);
+      }
+      if (isToolsOpen) {
+        setIsToolsOpen(false);
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    // Only add listener if any menu is open
+    if (isMenuOpen || isUserMenuOpen || isToolsOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
   }, [isMenuOpen, isUserMenuOpen, isToolsOpen]);
 
   const checkAuthStatus = async () => {
