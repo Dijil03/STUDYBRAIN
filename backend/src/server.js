@@ -53,11 +53,38 @@ const corsOptions = {
 
 console.log('🌐 CORS: Allowing all origins (temporary for debugging)');
 
-// Apply CORS middleware
+// CORS must be the very first middleware - Add request logging for debugging
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
+  next();
+});
+
+// Apply CORS middleware - MUST be before any other middleware
 app.use(cors(corsOptions));
 
 // Explicit OPTIONS handler for all routes (preflight requests)
 app.options('*', cors(corsOptions));
+
+// Additional manual CORS headers as fallback
+app.use((req, res, next) => {
+  // Set CORS headers manually as additional fallback
+  if (req.headers.origin) {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization, Set-Cookie');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 app.use(cookieParser());
 
@@ -136,7 +163,7 @@ app.use((req, res) => {
     res.header('Access-Control-Allow-Origin', req.headers.origin);
     res.header('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   res.status(404).json({
     success: false,
     message: 'API route not found',
@@ -148,13 +175,13 @@ app.use((req, res) => {
 // Global error handler - Make sure CORS headers are set even on errors
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
-  
+
   // Ensure CORS headers are set before sending error response
   if (req.headers.origin) {
     res.header('Access-Control-Allow-Origin', req.headers.origin);
     res.header('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   res.status(500).json({
     success: false,
     message: 'Internal server error',
