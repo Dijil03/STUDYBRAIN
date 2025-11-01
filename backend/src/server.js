@@ -43,7 +43,7 @@ const __dirname = path.dirname(__filename);
 app.use((req, res, next) => {
   // Log incoming request
   console.log(`📥 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
-  
+
   // Set CORS headers immediately
   const origin = req.headers.origin;
   if (origin) {
@@ -56,13 +56,13 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie, X-CSRF-Token');
   res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization, Set-Cookie');
   res.setHeader('Access-Control-Max-Age', '86400');
-  
+
   // Handle preflight OPTIONS requests immediately
   if (req.method === 'OPTIONS') {
     console.log('✅ Handling OPTIONS preflight request');
     return res.status(200).end();
   }
-  
+
   next();
 });
 
@@ -148,12 +148,19 @@ app.use('/api/ai', aiRoutes);
 
 
 
-// Health check endpoint
+// Health check endpoint - with explicit CORS
 app.get('/health', (req, res) => {
+  // Explicitly set CORS headers for health check
+  if (req.headers.origin) {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    corsConfigured: true
   });
 });
 
@@ -193,14 +200,17 @@ app.use((err, req, res, next) => {
 // Connect to database first, then start server
 connectDB().then(() => {
   const server = app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log('Server is ready to accept connections');
-    console.log('Using MongoDB session store');
+    console.log(`✅ Server is running on port ${PORT}`);
+    console.log('✅ Server is ready to accept connections');
+    console.log('✅ Using MongoDB session store');
+    console.log('✅ CORS configured to allow all origins');
+    console.log('✅ Test CORS endpoint: GET /api/test-cors');
+    console.log('✅ AI routes: POST /api/ai/sessions');
   });
 
   // Setup Socket.io for real-time collaboration
   setupDocumentSocket(server);
 }).catch((error) => {
-  console.error('Failed to start server:', error);
+  console.error('❌ Failed to start server:', error);
   process.exit(1);
 });
