@@ -131,6 +131,12 @@ app.get('/health', (req, res) => {
 
 // 404 handler - Backend only serves API routes
 app.use((req, res) => {
+  // Ensure CORS headers are set for 404 responses too
+  if (req.headers.origin) {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  
   res.status(404).json({
     success: false,
     message: 'API route not found',
@@ -139,9 +145,16 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
+// Global error handler - Make sure CORS headers are set even on errors
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
+  
+  // Ensure CORS headers are set before sending error response
+  if (req.headers.origin) {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  
   res.status(500).json({
     success: false,
     message: 'Internal server error',
