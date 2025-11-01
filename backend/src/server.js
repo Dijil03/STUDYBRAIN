@@ -137,6 +137,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-connectDB();
+// Connect to database first, then start server
+connectDB().then(() => {
+  const server = app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log('Server is ready to accept connections');
+    console.log('Using MongoDB session store');
+  });
 
-// Server setup is now in connectDB().then() above
+  // Setup Socket.io for real-time collaboration
+  setupDocumentSocket(server);
+}).catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});
