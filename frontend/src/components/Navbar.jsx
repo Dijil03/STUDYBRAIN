@@ -740,158 +740,173 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Enhanced Mobile Menu - Full screen overlay style */}
+        {/* Rebuilt Mobile Menu - Full Screen Slide-in */}
         <AnimatePresence>
           {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto', maxHeight: 'calc(100vh - 5rem)' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="lg:hidden border-t border-white/10 bg-slate-900/98 relative z-[60] overflow-y-auto"
-              data-menu
-              onClick={(e) => {
-                // Only stop propagation if clicking on the container itself, not buttons inside
-                if (e.target === e.currentTarget) {
-                  e.stopPropagation();
-                }
-              }}
-            >
+            <>
+              {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5"
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[55] lg:hidden"
+                onClick={() => setIsMenuOpen(false)}
               />
-              <div className="px-4 sm:px-6 py-6 sm:py-8 space-y-3 sm:space-y-4 relative z-10">
-                {/* Main Navigation Links - Mobile */}
-                {mainNavLinks.map((link, index) => {
-                  const Icon = link.icon;
-                  return (
-                    <motion.div 
-                      key={link.name}
-                      initial={{ opacity: 0, x: -30 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <button
-                        className={`flex items-center space-x-4 px-4 sm:px-5 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold w-full text-left transition-all duration-300 ${
-                          isActive(link.path)
-                            ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white border border-white/20 shadow-lg'
-                            : 'text-white/70 hover:text-white hover:bg-white/10'
-                        }`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setIsMenuOpen(false);
-                          setTimeout(() => {
-                            navigate(link.path);
-                          }, 100);
-                        }}
-                      >
-                        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ${isActive(link.path) ? 'text-white' : link.color}`} />
-                        <span className="text-base sm:text-lg">{link.name}</span>
-                        {isActive(link.path) && (
+              
+              {/* Menu Panel */}
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                className="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-slate-900 shadow-2xl z-[60] lg:hidden overflow-y-auto"
+                data-menu
+              >
+                {/* Menu Header */}
+                <div className="sticky top-0 bg-slate-900 border-b border-white/10 p-4 flex items-center justify-between z-10">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                      <Brain className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-lg font-bold text-white">Menu</span>
+                  </div>
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    aria-label="Close menu"
+                  >
+                    <X className="w-6 h-6 text-white" />
+                  </button>
+                </div>
+
+                {/* Menu Content */}
+                <div className="p-4 space-y-6">
+                  {/* Main Navigation */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3 px-2">
+                      Navigation
+                    </h3>
+                    <div className="space-y-2">
+                      {mainNavLinks.map((link, index) => {
+                        const Icon = link.icon;
+                        const active = isActive(link.path);
+                        return (
                           <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="w-2 h-2 bg-purple-400 rounded-full ml-auto"
-                          />
-                        )}
-                      </button>
-                    </motion.div>
-                  );
-                })}
-
-                {/* Music Player Section - Mobile */}
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: mainNavLinks.length * 0.05 }}
-                  className="pt-4 sm:pt-6 border-t border-white/10"
-                >
-                  <div className="px-4 sm:px-5">
-                    <SimpleMusicPlayer />
-                  </div>
-                </motion.div>
-
-                {/* Enhanced Tools Section - Mobile */}
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: (mainNavLinks.length + 1) * 0.05 }}
-                  className="pt-4 sm:pt-6 border-t border-white/10"
-                >
-                  <div className="flex items-center space-x-3 sm:space-x-4 px-4 sm:px-5 py-3 sm:py-4 text-white/70">
-                    <motion.div
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
-                    </motion.div>
-                    <span className="font-bold text-base sm:text-lg">Tools</span>
-                  </div>
-                  <div className="pl-4 sm:pl-5 space-y-2">
-                    {toolsDropdown.map((tool, index) => {
-                      const Icon = tool.icon;
-                      return (
-                        <motion.div 
-                          key={tool.name}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: (mainNavLinks.length + 2 + index) * 0.03 }}
-                        >
-                          <button
-                            className={`flex items-center space-x-3 sm:space-x-4 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-semibold w-full text-left transition-all duration-300 ${
-                              isActive(tool.path)
-                                ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-white/20'
-                                : 'text-white/70 hover:text-white hover:bg-white/10'
-                            }`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setIsMenuOpen(false);
-                              setTimeout(() => {
-                                navigate(tool.path);
-                              }, 100);
-                            }}
+                            key={link.name}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
                           >
-                            <Icon className={`w-5 h-5 flex-shrink-0 ${tool.color}`} />
-                            <span className="text-sm sm:text-base">{tool.name}</span>
-                            {isActive(tool.path) && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="w-2 h-2 bg-purple-400 rounded-full ml-auto"
-                              />
-                            )}
-                          </button>
-                        </motion.div>
-                      );
-                    })}
+                            <Link
+                              to={link.path}
+                              onClick={() => setIsMenuOpen(false)}
+                              className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group ${
+                                active
+                                  ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white border border-white/20'
+                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                              }`}
+                            >
+                              <Icon className={`w-5 h-5 ${active ? 'text-white' : link.color} transition-transform group-hover:scale-110`} />
+                              <span className="flex-1">{link.name}</span>
+                              {active && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="w-2 h-2 bg-purple-400 rounded-full"
+                                />
+                              )}
+                            </Link>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </motion.div>
-              </div>
-            </motion.div>
+
+                  {/* Music Player */}
+                  <div className="pt-4 border-t border-white/10">
+                    <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3 px-2">
+                      Music
+                    </h3>
+                    <div className="px-2">
+                      <SimpleMusicPlayer />
+                    </div>
+                  </div>
+
+                  {/* Tools Section */}
+                  <div className="pt-4 border-t border-white/10">
+                    <div className="flex items-center space-x-3 mb-3 px-2">
+                      <Settings className="w-5 h-5 text-purple-400" />
+                      <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                        Tools
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      {toolsDropdown.map((tool, index) => {
+                        const Icon = tool.icon;
+                        const active = isActive(tool.path);
+                        return (
+                          <motion.div
+                            key={tool.name}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: (mainNavLinks.length + index) * 0.03 }}
+                          >
+                            <Link
+                              to={tool.path}
+                              onClick={() => setIsMenuOpen(false)}
+                              className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                                active
+                                  ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-white/20'
+                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                              }`}
+                            >
+                              <Icon className={`w-4 h-4 ${tool.color} transition-transform group-hover:scale-110`} />
+                              <span className="flex-1">{tool.name}</span>
+                              {active && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="w-1.5 h-1.5 bg-purple-400 rounded-full"
+                                />
+                              )}
+                            </Link>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* User Actions - Mobile */}
+                  <div className="pt-4 border-t border-white/10">
+                    <div className="space-y-2">
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 group"
+                      >
+                        <User className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+                        <span className="font-medium">Profile</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 group w-full text-left"
+                      >
+                        <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <span className="font-medium">Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Backdrop overlay for mobile menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-[50] lg:hidden"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsMenuOpen(false);
-            }}
-          />
-        )}
-      </AnimatePresence>
     </motion.nav>
   );
 };
