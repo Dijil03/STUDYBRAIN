@@ -38,6 +38,34 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// CORS headers MUST be set FIRST, before any other middleware
+// This is a manual implementation to ensure it always works
+app.use((req, res, next) => {
+  // Log incoming request
+  console.log(`📥 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
+  
+  // Set CORS headers immediately
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie, X-CSRF-Token');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization, Set-Cookie');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  
+  // Handle preflight OPTIONS requests immediately
+  if (req.method === 'OPTIONS') {
+    console.log('✅ Handling OPTIONS preflight request');
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
 // CORS configuration - Allow all origins temporarily for debugging
 // TODO: Restrict to specific origins in production
 const corsOptions = {
@@ -51,40 +79,13 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
-console.log('🌐 CORS: Allowing all origins (temporary for debugging)');
+console.log('🌐 CORS: Using manual CORS headers (most reliable method)');
 
-// CORS must be the very first middleware - Add request logging for debugging
-app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
-  next();
-});
-
-// Apply CORS middleware - MUST be before any other middleware
+// Also use cors package as backup (after manual headers are set)
 app.use(cors(corsOptions));
 
 // Explicit OPTIONS handler for all routes (preflight requests)
 app.options('*', cors(corsOptions));
-
-// Additional manual CORS headers as fallback
-app.use((req, res, next) => {
-  // Set CORS headers manually as additional fallback
-  if (req.headers.origin) {
-    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie');
-  res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization, Set-Cookie');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
 
 app.use(cookieParser());
 
