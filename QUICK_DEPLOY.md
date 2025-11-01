@@ -66,10 +66,15 @@ EMAIL_PASS=your_gmail_app_password
 2. Click **"Add New..."** → **"Project"**
 3. Import GitHub repository
 4. Configure:
-   - **Framework Preset**: `Vite`
+   - **Framework Preset**: `Vite` (or "Other" if Vite not listed)
    - **Root Directory**: `frontend`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
+   - **Build Command**: `npm run build` (Vite will auto-detect this)
+   - **Output Directory**: `dist` (Vite outputs to `dist` folder)
+   
+   **Note:** Your app uses:
+   - **Framework**: React 19
+   - **Build Tool**: Vite
+   - **Styling**: Tailwind CSS
 5. Add Environment Variable (optional):
    - `VITE_API_URL` = Your Render backend URL
 6. Click **"Deploy"**

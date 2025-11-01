@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import User from '../models/auth.model.js';
 import Subscription from '../models/subscription.model.js';
 import Payment from '../models/payment.model.js';
-import { sendEmail } from '../services/emailService.js';
+// Email service removed
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -572,15 +572,9 @@ const handleSubscriptionDeleted = async (subscription) => {
     // Send cancellation email if user found
     if (subscriptionRecord) {
       try {
-        const user = await User.findById(subscriptionRecord.userId);
-        if (user) {
-          await sendEmail(user.email, 'subscriptionCancelled', {
-            userName: user.username
-          });
-          console.log(`✅ Subscription cancellation email sent to ${user.email}`);
-        }
-      } catch (emailError) {
-        console.error('Error sending cancellation email:', emailError);
+        // Email service removed - no cancellation email sent
+      } catch (error) {
+        console.error('Error processing cancellation:', error);
       }
     }
   } catch (error) {
@@ -635,20 +629,7 @@ const handleSubscriptionCreated = async (subscription) => {
     await user.save();
     console.log(`✅ Updated user ${userId} subscription to ${tier} (${planNames[tier]})`);
 
-    // Send subscription success email
-    try {
-      const planName = planNames[tier] || 'Unknown Plan';
-      const amount = tier === 'premium' ? (billingCycle === 'yearly' ? '99.99' : '9.99') : (billingCycle === 'yearly' ? '199.99' : '19.99');
-      
-      await sendEmail(user.email, 'subscriptionSuccess', {
-        userName: user.username,
-        planName: planName,
-        amount: amount
-      });
-      console.log(`✅ Subscription success email sent to ${user.email}`);
-    } catch (emailError) {
-      console.error('Error sending subscription email:', emailError);
-    }
+    // Email service removed - no subscription success email sent
   } catch (error) {
     console.error('Error creating subscription:', error);
   }

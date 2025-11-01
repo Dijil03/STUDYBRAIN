@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import User from '../models/auth.model.js';
 import generateTokenAndSetCookie from '../utils/generateTokenAndSetCookie.js';
 import passport from 'passport';
-import { sendEmail } from '../services/emailService.js';
+// Email service removed
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -44,14 +44,7 @@ export const signup = async (req, res) => {
     const user = newUser.toObject();
     delete user.password;
 
-    // Send welcome email
-    try {
-      await sendEmail(user.email, 'welcome', { userName: user.username });
-      console.log(`✅ Welcome email sent to ${user.email}`);
-    } catch (emailError) {
-      console.error('Error sending welcome email:', emailError);
-      // Don't fail the signup if email fails
-    }
+    // Email service removed - no welcome email sent
 
     res.status(201).json({
       message: 'User created successfully',

@@ -14,7 +14,6 @@ import commentRoutes from './routes/comment.routes.js'
 import versionRoutes from './routes/version.routes.js'
 import stripeRoutes from './routes/stripe.routes.js'
 import communityRoutes from './routes/community.routes.js'
-import emailRoutes from './routes/email.routes.js'
 import googleDocsRoutes from './routes/googleDocs.routes.js'
 import googleClassroomRoutes from './routes/googleClassroom.routes.js'
 import studyPlanRoutes from './routes/studyplan.routes.js'
@@ -94,7 +93,6 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/versions', versionRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/community', communityRoutes);
-app.use('/api/email', emailRoutes);
 app.use('/api/google-docs', googleDocsRoutes);
 app.use('/api/google-classroom', googleClassroomRoutes);
 app.use('/api/study-plans', studyPlanRoutes);
