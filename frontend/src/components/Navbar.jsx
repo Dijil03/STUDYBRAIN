@@ -750,7 +750,12 @@ const Navbar = () => {
               transition={{ duration: 0.4, ease: "easeInOut" }}
               className="lg:hidden border-t border-white/10 bg-slate-900/98 relative z-[60] overflow-y-auto"
               data-menu
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                // Only stop propagation if clicking on the container itself, not buttons inside
+                if (e.target === e.currentTarget) {
+                  e.stopPropagation();
+                }
+              }}
             >
               <motion.div
                 initial={{ opacity: 0 }}
@@ -775,9 +780,13 @@ const Navbar = () => {
                             ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white border border-white/20 shadow-lg'
                             : 'text-white/70 hover:text-white hover:bg-white/10'
                         }`}
-                        onClick={() => {
-                          navigate(link.path);
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setIsMenuOpen(false);
+                          setTimeout(() => {
+                            navigate(link.path);
+                          }, 100);
                         }}
                       >
                         <Icon className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ${isActive(link.path) ? 'text-white' : link.color}`} />
@@ -838,9 +847,13 @@ const Navbar = () => {
                                 ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-white/20'
                                 : 'text-white/70 hover:text-white hover:bg-white/10'
                             }`}
-                            onClick={() => {
-                              navigate(tool.path);
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
                               setIsMenuOpen(false);
+                              setTimeout(() => {
+                                navigate(tool.path);
+                              }, 100);
                             }}
                           >
                             <Icon className={`w-5 h-5 flex-shrink-0 ${tool.color}`} />
