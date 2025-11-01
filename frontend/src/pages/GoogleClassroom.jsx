@@ -41,16 +41,26 @@ const GoogleClassroom = () => {
     try {
       setLoading(true);
       
+      // Use API utility for environment-aware URLs
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      
       // Fetch courses
-      const coursesResponse = await fetch(`http://localhost:5001/api/google-classroom/${userId}/courses`);
+      const coursesResponse = await fetch(`${apiUrl}/google-classroom/${userId}/courses`);
       const coursesData = await coursesResponse.json();
       
       if (coursesData.success) {
         setCourses(coursesData.courses || []);
+      } else if (coursesData.needsReauth) {
+        setError('Please authorize Google Classroom access');
+        // Store auth URL for button click
+        if (coursesData.authUrl) {
+          window._classroomAuthUrl = coursesData.authUrl;
+        }
       }
       
       // Fetch assignments
-      const assignmentsResponse = await fetch(`http://localhost:5001/api/google-classroom/${userId}/assignments`);
+      const assignmentsResponse = await fetch(`${apiUrl}/google-classroom/${userId}/assignments`);
       const assignmentsData = await assignmentsResponse.json();
       
       if (assignmentsData.success) {
@@ -118,7 +128,9 @@ const GoogleClassroom = () => {
   const syncAssignmentsToHomework = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/google-classroom/${userId}/sync-assignments`, {
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-classroom/${userId}/sync-assignments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

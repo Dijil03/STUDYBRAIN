@@ -72,6 +72,18 @@ export const googleClassroomController = {
 
     } catch (error) {
       console.error('❌ Error fetching courses:', error);
+      
+      // Handle 403 specifically
+      if (error.message.includes('403') || error.message.includes('Forbidden')) {
+        return res.status(403).json({
+          success: false,
+          message: 'Google Classroom access not authorized',
+          error: 'Missing Google Classroom API permissions. Please authorize Classroom access.',
+          needsReauth: true,
+          authUrl: `${process.env.SERVER_URL || ''}/api/auth/google-classroom`
+        });
+      }
+      
       res.status(500).json({
         success: false,
         message: 'Failed to fetch courses',
@@ -105,7 +117,18 @@ export const googleClassroomController = {
       });
 
       if (!response.ok) {
-        throw new Error(`Google Classroom API error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 403) {
+          console.error('❌ 403 Forbidden - Google Classroom scopes not authorized');
+          return res.status(403).json({
+            success: false,
+            message: 'Google Classroom access not authorized',
+            error: 'Missing Google Classroom API permissions',
+            needsReauth: true,
+            authUrl: `${process.env.SERVER_URL || ''}/api/auth/google-classroom`
+          });
+        }
+        throw new Error(`Google Classroom API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
       }
 
       const data = await response.json();
@@ -153,7 +176,11 @@ export const googleClassroomController = {
       });
 
       if (!coursesResponse.ok) {
-        throw new Error(`Failed to fetch courses: ${coursesResponse.status}`);
+        if (coursesResponse.status === 403) {
+          throw new Error('403: Google Classroom scopes not authorized. Please authorize Classroom access.');
+        }
+        const errorText = await coursesResponse.text().catch(() => '');
+        throw new Error(`Failed to fetch courses: ${coursesResponse.status} - ${errorText}`);
       }
 
       const coursesData = await coursesResponse.json();
@@ -209,6 +236,18 @@ export const googleClassroomController = {
 
     } catch (error) {
       console.error('❌ Error fetching all assignments:', error);
+      
+      // Handle 403 specifically
+      if (error.message.includes('403') || error.message.includes('Forbidden') || error.message.includes('scopes not authorized')) {
+        return res.status(403).json({
+          success: false,
+          message: 'Google Classroom access not authorized',
+          error: 'Missing Google Classroom API permissions. Please authorize Classroom access.',
+          needsReauth: true,
+          authUrl: `${process.env.SERVER_URL || ''}/api/auth/google-classroom`
+        });
+      }
+      
       res.status(500).json({
         success: false,
         message: 'Failed to fetch assignments',
@@ -309,9 +348,13 @@ const getAllAssignmentsForUser = async (userId) => {
     }
   });
 
-  if (!coursesResponse.ok) {
-    throw new Error(`Failed to fetch courses: ${coursesResponse.status}`);
-  }
+      if (!coursesResponse.ok) {
+        if (coursesResponse.status === 403) {
+          throw new Error('403: Google Classroom scopes not authorized. Please authorize Classroom access.');
+        }
+        const errorText = await coursesResponse.text().catch(() => '');
+        throw new Error(`Failed to fetch courses: ${coursesResponse.status} - ${errorText}`);
+      }
 
   const coursesData = await coursesResponse.json();
   const courses = coursesData.courses || [];

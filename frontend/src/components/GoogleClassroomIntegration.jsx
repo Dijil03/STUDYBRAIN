@@ -29,11 +29,9 @@ const GoogleClassroomIntegration = ({ userId, onAssignmentsSynced }) => {
   const checkGoogleClassroomConnection = async () => {
     try {
       setCheckingConnection(true);
-      const response = await fetch(`http://localhost:5001/api/google-classroom/${userId}/courses`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-classroom/${userId}/courses`);
       
       const data = await response.json();
       
@@ -41,9 +39,18 @@ const GoogleClassroomIntegration = ({ userId, onAssignmentsSynced }) => {
         setIsConnected(true);
         setCourses(data.courses || []);
         loadAssignments();
+        setError(null);
+      } else if (data.needsReauth || response.status === 403) {
+        // User needs to authorize Classroom access
+        setIsConnected(false);
+        setError('Google Classroom access not authorized');
+        // Store auth URL for button
+        if (data.authUrl) {
+          window._classroomAuthUrl = data.authUrl;
+        }
       } else {
         setIsConnected(false);
-        setError(data.message);
+        setError(data.message || 'Failed to connect to Google Classroom');
       }
     } catch (err) {
       console.error('Error checking Google Classroom connection:', err);
@@ -58,13 +65,21 @@ const GoogleClassroomIntegration = ({ userId, onAssignmentsSynced }) => {
   const loadAssignments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/google-classroom/${userId}/assignments`);
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-classroom/${userId}/assignments`);
       const data = await response.json();
       
       if (data.success) {
         setAssignments(data.assignments || []);
+        setError(null);
+      } else if (data.needsReauth || response.status === 403) {
+        setError('Google Classroom access not authorized');
+        if (data.authUrl) {
+          window._classroomAuthUrl = data.authUrl;
+        }
       } else {
-        setError(data.message);
+        setError(data.message || 'Failed to load assignments');
       }
     } catch (err) {
       console.error('Error loading assignments:', err);
@@ -77,7 +92,9 @@ const GoogleClassroomIntegration = ({ userId, onAssignmentsSynced }) => {
   const syncAssignmentsToHomework = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/google-classroom/${userId}/sync-assignments`, {
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-classroom/${userId}/sync-assignments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,11 +156,19 @@ const GoogleClassroomIntegration = ({ userId, onAssignmentsSynced }) => {
             Connect your Google Classroom account to sync assignments, track grades, and organize your studies.
           </p>
           <button
-            onClick={() => window.location.href = 'http://localhost:5001/api/auth/google-classroom'}
+            onClick={() => {
+              const backendUrl = import.meta.env.VITE_API_URL 
+                ? import.meta.env.VITE_API_URL.replace('/api', '')
+                : import.meta.env.PROD 
+                  ? '' 
+                  : 'http://localhost:5001';
+              const authUrl = window._classroomAuthUrl || `${backendUrl}/api/auth/google-classroom`;
+              window.location.href = authUrl;
+            }}
             className="px-6 py-3 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors flex items-center space-x-2 mx-auto"
           >
             <GraduationCap className="h-5 w-5" />
-            <span>Connect Google Classroom</span>
+            <span>Authorize Google Classroom</span>
           </button>
         </div>
       </div>

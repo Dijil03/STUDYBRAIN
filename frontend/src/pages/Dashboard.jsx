@@ -96,9 +96,10 @@ const Dashboard = () => {
   const [progress, setProgress] = useState(null);
   const [weeklyLog, setWeeklyLog] = useState([]);
   const [homeworkChart, setHomeworkChart] = useState({ labels: [], data: [] });
-  const [classroomData, setClassroomData] = useState({ courses: [], assignments: [], upcoming: 0, overdue: 0 });
+        const [classroomData, setClassroomData] = useState({ courses: [], assignments: [], upcoming: 0, overdue: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [needsClassroomAuth, setNeedsClassroomAuth] = useState(false);
   
   // Study logging state
   const [studySession, setStudySession] = useState({
@@ -167,7 +168,22 @@ const Dashboard = () => {
           api.get(`/homework/progress/${currentUserId}`),
           api.get(`/homeworklog/${currentUserId}`, { params: { weekStart } }),
           api.get(`/homework/chart/${currentUserId}`),
-          api.get(`/google-classroom/${currentUserId}/assignments`).then(res => res.data).catch(() => ({ success: false, assignments: [] }))
+          api.get(`/google-classroom/${currentUserId}/assignments`)
+            .then(res => {
+              if (res.data.needsReauth || res.status === 403) {
+                setNeedsClassroomAuth(true);
+                if (res.data.authUrl) {
+                  window._classroomAuthUrl = res.data.authUrl;
+                }
+              }
+              return res.data;
+            })
+            .catch((err) => {
+              if (err.response?.status === 403) {
+                setNeedsClassroomAuth(true);
+              }
+              return { success: false, assignments: [] };
+            })
         ]);
         
         setWorld(worldRes.data);
@@ -761,6 +777,48 @@ const Dashboard = () => {
                     </div>
                   </motion.div>
                 </motion.div>
+
+                {/* Google Classroom Authorization Prompt */}
+                {needsClassroomAuth && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.25 }}
+                    className="mb-6 sm:mb-8"
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 backdrop-blur-xl p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-2xl border border-yellow-500/30 ring-1 ring-yellow-500/20 transition-all duration-300"
+                    >
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center">
+                          <div className="p-2 sm:p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg sm:rounded-xl mr-3 sm:mr-4 shadow-lg">
+                            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1">Google Classroom Access Required</h2>
+                            <p className="text-slate-400 text-sm sm:text-base">Authorize access to sync your Classroom assignments and courses</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const backendUrl = import.meta.env.VITE_API_URL 
+                              ? import.meta.env.VITE_API_URL.replace('/api', '')
+                              : import.meta.env.PROD 
+                                ? '' 
+                                : 'http://localhost:5001';
+                            const authUrl = window._classroomAuthUrl || `${backendUrl}/api/auth/google-classroom`;
+                            window.location.href = authUrl;
+                          }}
+                          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all flex items-center space-x-2 shadow-lg"
+                        >
+                          <GraduationCap className="h-5 w-5" />
+                          <span>Authorize Google Classroom</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
 
                 {/* Google Classroom Section */}
                 {classroomData.assignments.length > 0 && (
