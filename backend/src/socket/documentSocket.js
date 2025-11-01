@@ -1,9 +1,18 @@
 import { Server } from 'socket.io';
 
 export const setupDocumentSocket = (server) => {
+    const allowedSocketOrigins = process.env.NODE_ENV === 'production'
+        ? [
+            process.env.FRONTEND_URL,
+            process.env.CLIENT_URL,
+            'https://studybrain.vercel.app',
+            'https://www.studybrain.vercel.app'
+          ].filter(Boolean)
+        : ["http://localhost:5173"];
+    
     const io = new Server(server, {
         cors: {
-            origin: process.env.FRONTEND_URL || "http://localhost:5173",
+            origin: allowedSocketOrigins,
             methods: ["GET", "POST"],
             credentials: true
         }
