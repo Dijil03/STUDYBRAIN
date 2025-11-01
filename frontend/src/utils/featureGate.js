@@ -323,4 +323,32 @@ export const useDocumentLimits = () => {
   };
 };
 
+export const useAIQueryLimits = () => {
+  const { userSubscription } = useFeatureGate();
+
+  // Determine limits based on subscription tier
+  const maxQueriesPerDay = userSubscription?.tier === 'enterprise' ? -1 : 
+                          userSubscription?.tier === 'premium' ? 50 : 10;
+  const isUnlimited = maxQueriesPerDay === -1;
+
+  // Function to check if user can make a query based on current count
+  const canMakeQuery = (currentCount) => {
+    if (isUnlimited) return true;
+    return currentCount < maxQueriesPerDay;
+  };
+
+  // Get remaining queries
+  const remainingQueries = (currentCount) => {
+    if (isUnlimited) return -1; // Unlimited
+    return Math.max(0, maxQueriesPerDay - currentCount);
+  };
+
+  return {
+    canMakeQuery,
+    maxQueriesPerDay,
+    isUnlimited,
+    remainingQueries
+  };
+};
+
 export default useFeatureGate;
