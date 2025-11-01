@@ -116,13 +116,57 @@ const Navbar = () => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await api.get('/auth/google/success');
+      // First check localStorage for userId (faster, works even if API is down)
+      const userId = localStorage.getItem('userId');
+      const username = localStorage.getItem('username');
       
-      if (response.status === 200) {
-        setUser(response.data.user);
+      if (userId && username) {
+        // Set user from localStorage immediately for faster UI
+        setUser({
+          id: userId,
+          username: username,
+          email: localStorage.getItem('userEmail') || '',
+          profilePicture: localStorage.getItem('userAvatar') || ''
+        });
+        setLoading(false);
+      }
+      
+      // Then verify with API (if available)
+      try {
+        const response = await api.get('/auth/google/success');
+        if (response.status === 200 && response.data.user) {
+          // Update with full user data from API
+          setUser(response.data.user);
+          // Save to localStorage
+          localStorage.setItem('userId', response.data.user.id);
+          localStorage.setItem('username', response.data.user.username || response.data.user.firstName || 'User');
+          if (response.data.user.email) {
+            localStorage.setItem('userEmail', response.data.user.email);
+          }
+        }
+      } catch (apiError) {
+        // API check failed, but we already have localStorage data
+        console.log('API auth check failed, using localStorage:', apiError.message);
+        // Keep user from localStorage if we have it
+        if (!userId) {
+          setUser(null);
+        }
       }
     } catch (error) {
-      console.log('Not authenticated');
+      console.log('Auth check error:', error);
+      // Fallback to localStorage
+      const userId = localStorage.getItem('userId');
+      const username = localStorage.getItem('username');
+      if (userId && username) {
+        setUser({
+          id: userId,
+          username: username,
+          email: localStorage.getItem('userEmail') || '',
+          profilePicture: localStorage.getItem('userAvatar') || ''
+        });
+      } else {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
