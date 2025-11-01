@@ -41,6 +41,8 @@ const TestSubscription = lazy(() => import("./pages/TestSubscription"));
 const Documents = lazy(() => import("./pages/Documents"));
 const CancellationSuccess = lazy(() => import("./pages/CancellationSuccess"));
 const LoadingDemo = lazy(() => import("./pages/LoadingDemo"));
+const AI = lazy(() => import("./pages/AI"));
+const AITutorPage = lazy(() => import("./pages/AITutorPage"));
 
 const App = () => {
   return (
@@ -89,6 +91,8 @@ const App = () => {
             <Route path="/test-subscription" element={<TestSubscription />} />
             <Route path="/cancellation-success" element={<CancellationSuccess />} />
             <Route path="/loading-demo" element={<LoadingDemo />} />
+            <Route path="/ai" element={<AI />} />
+            <Route path="/ai-tutor" element={<AITutorPage />} />
             </Routes>
             </Suspense>
         </ThemeWrapper>
