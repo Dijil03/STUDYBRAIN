@@ -17,6 +17,7 @@ import communityRoutes from './routes/community.routes.js'
 import googleDocsRoutes from './routes/googleDocs.routes.js'
 import googleClassroomRoutes from './routes/googleClassroom.routes.js'
 import studyPlanRoutes from './routes/studyplan.routes.js'
+import aiRoutes from './routes/ai.routes.js'
 import connectDB from './db/connection.js';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -39,7 +40,7 @@ const __dirname = path.dirname(__filename);
 
 // CORS configuration
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [process.env.FRONTEND_URL]
+  ? [process.env.FRONTEND_URL, process.env.CLIENT_URL].filter(Boolean)
   : ["http://localhost:5173"];
 
 app.use(cors({
@@ -101,6 +102,7 @@ app.use('/api/community', communityRoutes);
 app.use('/api/google-docs', googleDocsRoutes);
 app.use('/api/google-classroom', googleClassroomRoutes);
 app.use('/api/study-plans', studyPlanRoutes);
+app.use('/api/ai', aiRoutes);
 
 
 
