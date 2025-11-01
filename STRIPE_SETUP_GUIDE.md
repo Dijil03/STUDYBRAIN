@@ -6,8 +6,8 @@ Add these to your `backend/.env` file:
 
 ```env
 # Stripe Configuration
-STRIPE_SECRET_KEY=sk_test_your_stripe_test_secret_key_here
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+STRIPE_SECRET_KEY=your_stripe_secret_key_from_dashboard
+STRIPE_WEBHOOK_SECRET=your_webhook_secret_from_dashboard
 
 # Frontend URL
 FRONTEND_URL=http://localhost:5173
