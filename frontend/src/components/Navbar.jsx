@@ -222,6 +222,7 @@ const Navbar = () => {
     }
   };
 
+  // Define navigation links
   const mainNavLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: Home, color: 'text-blue-400' },
     { name: 'AI Assistant', path: '/ai', icon: Sparkles, color: 'text-indigo-400' },
@@ -420,7 +421,7 @@ const Navbar = () => {
           </Link>
 
           {/* Enhanced Desktop Navigation - Better responsive */}
-          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-3 flex-1 justify-center max-w-6xl mx-2 xl:mx-4 overflow-x-auto scrollbar-hide">
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 flex-1 justify-center mx-2 xl:mx-4 flex-wrap">
             {mainNavLinks.map((link, index) => {
               const Icon = link.icon;
               return (
