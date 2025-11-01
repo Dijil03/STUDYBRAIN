@@ -85,7 +85,8 @@ console.log('🌐 CORS: Using manual CORS headers (most reliable method)');
 app.use(cors(corsOptions));
 
 // Explicit OPTIONS handler for all routes (preflight requests)
-app.options('*', cors(corsOptions));
+// Note: Express 5 doesn't support wildcard '*', so we handle OPTIONS in the manual middleware
+// The cors() middleware already handles OPTIONS requests automatically
 
 app.use(cookieParser());
 
@@ -173,7 +174,7 @@ app.get('/health', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
   }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
+
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
