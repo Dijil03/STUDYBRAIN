@@ -75,8 +75,11 @@ EMAIL_PASS=your_gmail_app_password
    - **Framework**: React 19
    - **Build Tool**: Vite
    - **Styling**: Tailwind CSS
-5. Add Environment Variable (optional):
-   - `VITE_API_URL` = Your Render backend URL
+5. Add Environment Variables (REQUIRED for production):
+   - `VITE_API_URL` = Your Render backend URL (e.g., `https://your-backend.onrender.com`)
+   - `VITE_SOCKET_URL` = Your Render backend URL (same as above, for Socket.io)
+   
+   **Important**: Make sure to use HTTPS URLs (https://) not HTTP!
 6. Click **"Deploy"**
 7. Wait for deployment (1-2 minutes)
 8. **Copy the URL**: `https://your-app.vercel.app`

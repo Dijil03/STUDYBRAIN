@@ -382,7 +382,14 @@ const DocumentEditor = () => {
 
   const setupSocket = () => {
     try {
-      const newSocket = io('http://localhost:5001', {
+      const socketUrl = import.meta.env.VITE_SOCKET_URL 
+        ? import.meta.env.VITE_SOCKET_URL
+        : import.meta.env.VITE_API_URL
+          ? import.meta.env.VITE_API_URL.replace('/api', '')
+          : import.meta.env.PROD
+            ? '' // Will use same origin
+            : 'http://localhost:5001';
+      const newSocket = io(socketUrl || undefined, {
         transports: ['websocket', 'polling']
       });
       

@@ -84,7 +84,9 @@ const FolderManager = () => {
 
   const fetchGoogleDocs = async () => {
     try {
-      const response = await fetch(`http://localhost:5001/api/google-docs/${userId}/documents`);
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents`);
       const data = await response.json();
       if (data.success) {
         setGoogleDocs(data.documents || []);

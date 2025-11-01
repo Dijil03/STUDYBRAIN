@@ -167,7 +167,7 @@ const Dashboard = () => {
           api.get(`/homework/progress/${currentUserId}`),
           api.get(`/homeworklog/${currentUserId}`, { params: { weekStart } }),
           api.get(`/homework/chart/${currentUserId}`),
-          fetch(`http://localhost:5001/api/google-classroom/${currentUserId}/assignments`).then(res => res.json()).catch(() => ({ success: false, assignments: [] }))
+          api.get(`/google-classroom/${currentUserId}/assignments`).then(res => res.data).catch(() => ({ success: false, assignments: [] }))
         ]);
         
         setWorld(worldRes.data);

@@ -59,7 +59,12 @@ const Login = () => {
   };
 
   const handleGoogleAuth = () => {
-    window.location.href = 'http://localhost:5001/api/auth/google';
+    const backendUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace('/api', '')
+      : import.meta.env.PROD 
+        ? '' // Will use relative path
+        : 'http://localhost:5001';
+    window.location.href = `${backendUrl}/api/auth/google`;
   };
 
   return (

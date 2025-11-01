@@ -32,7 +32,9 @@ const SimpleGoogleDocsIntegration = ({ userId, onDocumentCreated, onDocumentSele
   const checkGoogleConnection = async () => {
     try {
       setCheckingConnection(true);
-      const response = await fetch(`http://localhost:5001/api/google-docs/${userId}/token`);
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/token`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -59,7 +61,9 @@ const SimpleGoogleDocsIntegration = ({ userId, onDocumentCreated, onDocumentSele
   const loadDocuments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/google-docs/${userId}/documents`);
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents`);
       const data = await response.json();
       
       if (data.success) {
@@ -81,7 +85,9 @@ const SimpleGoogleDocsIntegration = ({ userId, onDocumentCreated, onDocumentSele
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/google-docs/${userId}/documents`, {
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +130,9 @@ const SimpleGoogleDocsIntegration = ({ userId, onDocumentCreated, onDocumentSele
 
   const shareDocument = async (documentId, email) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/google-docs/${userId}/documents/${documentId}/share`, {
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents/${documentId}/share`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -181,7 +189,14 @@ const SimpleGoogleDocsIntegration = ({ userId, onDocumentCreated, onDocumentSele
           To use Google Docs integration, you need to connect your Google account first.
         </p>
         <button
-          onClick={() => window.location.href = 'http://localhost:5001/api/auth/google-docs'}
+          onClick={() => {
+            const backendUrl = import.meta.env.VITE_API_URL 
+              ? import.meta.env.VITE_API_URL.replace('/api', '')
+              : import.meta.env.PROD 
+                ? '' 
+                : 'http://localhost:5001';
+            window.location.href = `${backendUrl}/api/auth/google-docs`;
+          }}
           className="px-4 py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors"
         >
           Connect Google Account
