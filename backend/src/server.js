@@ -23,10 +23,12 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import passport from './config/passport.js';
 import { setupDocumentSocket } from './socket/documentSocket.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
 
 const app = express();
 
@@ -48,11 +50,18 @@ app.use(cors({
 
 app.use(cookieParser());
 
-// Session configuration
+// Session configuration with MongoDB store
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    client: mongoose.connection.getClient(),
+    dbName: mongoose.connection.name,
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60, // 24 hours in seconds
+    autoRemove: 'native'
+  }),
   cookie: {
     secure: process.env.NODE_ENV === 'production', // Set to true in production with HTTPS
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
@@ -130,10 +139,4 @@ app.use((err, req, res, next) => {
 
 connectDB();
 
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log('Server is ready to accept connections');
-});
-
-// Setup Socket.io for real-time collaboration
-setupDocumentSocket(server);
+// Server setup is now in connectDB().then() above
