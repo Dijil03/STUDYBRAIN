@@ -28,7 +28,6 @@ import passport from './config/passport.js';
 import { setupDocumentSocket } from './socket/documentSocket.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import mongoose from 'mongoose';
 
 const app = express();
 
@@ -51,13 +50,13 @@ app.use(cors({
 app.use(cookieParser());
 
 // Session configuration with MongoDB store
+// Using mongoUrl so store can connect independently
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    client: mongoose.connection.getClient(),
-    dbName: mongoose.connection.name,
+    mongoUrl: process.env.MONGODB_URI,
     collectionName: 'sessions',
     ttl: 24 * 60 * 60, // 24 hours in seconds
     autoRemove: 'native'
