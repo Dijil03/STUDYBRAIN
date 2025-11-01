@@ -4,11 +4,22 @@ import User from '../models/auth.model.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+// Build callback URL - use absolute URL in production, relative in development
+const buildCallbackURL = () => {
+  if (process.env.NODE_ENV === 'production' && process.env.SERVER_URL) {
+    // In production, use full URL
+    return `${process.env.SERVER_URL}/api/auth/google/callback`;
+  }
+  // In development, use relative URL (Passport will construct full URL from request)
+  return "/api/auth/google/callback";
+};
+
 // Configure Google OAuth Strategy
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "/api/auth/google/callback"
+  callbackURL: buildCallbackURL()
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     // Check if user already exists
