@@ -326,7 +326,7 @@ export const useDocumentLimits = () => {
 };
 
 // Hook for AI query limits based on subscription tier
-export const useAIQueryLimits = () => {
+export function useAIQueryLimits() {
   const { userSubscription } = useFeatureGate();
 
   // Determine limits based on subscription tier
@@ -352,9 +352,6 @@ export const useAIQueryLimits = () => {
     isUnlimited,
     remainingQueries
   };
-};
-
-// Explicit named export for better tree-shaking
-export { useAIQueryLimits };
+}
 
 export default useFeatureGate;
