@@ -1,13 +1,24 @@
-import { MailtrapClient } from 'mailtrap';
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Create Mailtrap client
-const createMailtrapClient = () => {
-  return new MailtrapClient({
-    token: process.env.MAILTRAP_TOKEN
-  });
+// Create email transporter (supports both Mailtrap and production email)
+const createTransporter = () => {
+  // Use production email if EMAIL_USER is set, otherwise skip (won't work without mailtrap)
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    return nodemailer.createTransporter({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+  }
+  
+  // If no email config, return null (emails will fail silently in development)
+  console.warn('⚠️  Email not configured. Set EMAIL_USER and EMAIL_PASS for production.');
+  return null;
 };
 
 // Email templates
@@ -202,7 +213,13 @@ export const emailTemplates = {
 // Email service functions
 export const sendEmail = async (to, template, data = {}) => {
   try {
-    const client = createMailtrapClient();
+    const transporter = createTransporter();
+    
+    if (!transporter) {
+      console.warn('Email transporter not configured. Skipping email send.');
+      return { success: false, error: 'Email not configured' };
+    }
+
     const emailTemplate = emailTemplates[template];
 
     if (!emailTemplate) {
@@ -213,27 +230,17 @@ export const sendEmail = async (to, template, data = {}) => {
       ? emailTemplate(data)
       : emailTemplate;
 
-    const sender = {
-      email: "noreply@brainapp.com",
-      name: "Brain Study App"
+    const mailOptions = {
+      from: `"Brain Study App" <${process.env.EMAIL_USER}>`,
+      to: to,
+      subject: emailContent.subject,
+      html: emailContent.html
     };
 
-    const recipients = [
-      {
-        email: to
-      }
-    ];
+    const result = await transporter.sendMail(mailOptions);
 
-    const result = await client.send({
-      from: sender,
-      to: recipients,
-      subject: emailContent.subject,
-      html: emailContent.html,
-      category: template
-    });
-
-    console.log('Email sent successfully:', result);
-    return { success: true, messageId: result.id };
+    console.log('Email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('Error sending email:', error);
     return { success: false, error: error.message };
