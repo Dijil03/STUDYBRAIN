@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+// Export useAIQueryLimits hook for AI query limits
+
 // Feature definitions with required subscription tiers
 const FEATURE_DEFINITIONS = {
   // Document features
