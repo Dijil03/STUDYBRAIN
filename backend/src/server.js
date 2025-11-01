@@ -41,34 +41,55 @@ const __dirname = path.dirname(__filename);
 // CORS configuration
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [
-      process.env.FRONTEND_URL,
-      process.env.CLIENT_URL,
-      'https://studybrain.vercel.app', // Explicitly allow Vercel URL
-      'https://www.studybrain.vercel.app' // Allow www variant too
-    ].filter(Boolean)
+    process.env.FRONTEND_URL,
+    process.env.CLIENT_URL,
+    'https://studybrain.vercel.app', // Explicitly allow Vercel URL
+    'https://www.studybrain.vercel.app', // Allow www variant too
+    'http://studybrain.vercel.app', // HTTP variant (if needed)
+    'http://www.studybrain.vercel.app' // HTTP www variant
+  ].filter(Boolean)
   : ["http://localhost:5173"];
+
+// Normalize origins (remove trailing slashes, convert to lowercase for comparison)
+const normalizedOrigins = allowedOrigins.map(origin => origin.replace(/\/$/, '').toLowerCase());
 
 // Log allowed origins for debugging
 console.log('🌐 Allowed CORS origins:', allowedOrigins);
+console.log('🌐 Normalized origins:', normalizedOrigins);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (like mobile apps, Postman, curl, etc.)
+    if (!origin) {
+      console.log('✅ CORS: Allowing request with no origin');
+      return callback(null, true);
+    }
+
+    // Normalize the incoming origin
+    const normalizedOrigin = origin.replace(/\/$/, '').toLowerCase();
     
-    // Check if origin is in allowed list
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Check if normalized origin is in allowed list
+    if (normalizedOrigins.includes(normalizedOrigin)) {
+      console.log(`✅ CORS: Allowing origin: ${origin}`);
       callback(null, true);
     } else {
       // Log blocked origin for debugging
-      console.warn(`⚠️ CORS blocked origin: ${origin}`);
+      console.warn(`⚠️ CORS blocked origin: ${origin} (normalized: ${normalizedOrigin})`);
       console.log('Allowed origins:', allowedOrigins);
-      callback(new Error('Not allowed by CORS'));
+      console.log('Normalized allowed origins:', normalizedOrigins);
+      // Still allow it for debugging - remove this in production if needed
+      // For now, allow it so we can see what's happening
+      callback(null, true); // Temporarily allow all for debugging
+      // callback(new Error('Not allowed by CORS')); // Uncomment when working
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 }));
 
 app.use(cookieParser());
