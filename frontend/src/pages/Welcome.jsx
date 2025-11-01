@@ -295,14 +295,72 @@ const Welcome = () => {
               </motion.button>
             </div>
 
-        <button
-              className="md:hidden p-2 rounded-xl bg-gray-100 dark:bg-slate-800"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        <button
+              className={`md:hidden p-2 rounded-xl transition-colors ${
+                isDarkMode 
+                  ? isMenuOpen ? 'bg-slate-700 text-white' : 'bg-slate-800 text-gray-300'
+                  : isMenuOpen ? 'bg-gray-200 text-gray-900' : 'bg-gray-100 text-gray-600'
+              }`}
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
-      </div>
+        </button>
+      </div>
+      </div>
+      
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className={`md:hidden border-t ${
+            isDarkMode ? 'border-slate-700 bg-slate-900/98' : 'border-gray-200 bg-white/98'
+          } backdrop-blur-xl`}
+        >
+          <div className="px-6 py-4 space-y-4">
+            <a 
+              href="#features" 
+              onClick={() => setIsMenuOpen(false)}
+              className={`block py-2 ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+            >
+              Features
+            </a>
+            <a 
+              href="#testimonials" 
+              onClick={() => setIsMenuOpen(false)}
+              className={`block py-2 ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+            >
+              Testimonials
+            </a>
+            <a 
+              href="#pricing" 
+              onClick={() => setIsMenuOpen(false)}
+              className={`block py-2 ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+            >
+              Pricing
+            </a>
+            <div className="flex items-center justify-between pt-2 border-t border-gray-700/50">
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-xl ${isDarkMode ? 'bg-slate-800 text-yellow-400' : 'bg-gray-100 text-gray-600'}`}
+              >
+                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-xl font-medium shadow-lg"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  window.location.href = '/login';
+                }}
+              >
+                Get Started
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      )}
       </motion.nav>
 
       {/* Enhanced Hero Section */}

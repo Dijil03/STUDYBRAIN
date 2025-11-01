@@ -74,18 +74,21 @@ const Signup = () => {
   };
 
   const handleGoogleAuth = () => {
+    // Google OAuth requires absolute URL, cannot use relative path
     const backendUrl = import.meta.env.VITE_API_URL 
       ? import.meta.env.VITE_API_URL.replace('/api', '')
       : import.meta.env.PROD 
-        ? '' // Will use relative path
+        ? window.location.origin.replace(/:\d+$/, '') // Use current origin in production
         : 'http://localhost:5001';
-    window.location.href = `${backendUrl}/api/auth/google`;
+    const url = backendUrl ? `${backendUrl}/api/auth/google` : '/api/auth/google';
+    console.log('Redirecting to Google OAuth:', url);
+    window.location.href = url;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       <Navbar />
-      <div className="flex items-center justify-center p-4 min-h-screen">
+      <div className="flex items-center justify-center p-4 sm:p-6 md:p-8 min-h-screen">
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
@@ -97,7 +100,7 @@ const Signup = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative w-full max-w-md"
+        className="relative w-full max-w-md mx-auto px-4"
       >
         {/* Glass Card */}
         <div className="backdrop-blur-lg bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
@@ -108,8 +111,8 @@ const Signup = () => {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-center mb-8"
           >
-            <h1 className="text-4xl font-bold text-white mb-2">Join Us Today</h1>
-            <p className="text-white/70">Create your account and start your journey</p>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Join Us Today</h1>
+            <p className="text-sm sm:text-base text-white/70">Create your account and start your journey</p>
           </motion.div>
 
           {/* Error/Success Messages */}
