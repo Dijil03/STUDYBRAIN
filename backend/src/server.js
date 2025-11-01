@@ -141,7 +141,25 @@ app.use('/api/community', communityRoutes);
 app.use('/api/google-docs', googleDocsRoutes);
 app.use('/api/google-classroom', googleClassroomRoutes);
 app.use('/api/study-plans', studyPlanRoutes);
-app.use('/api/ai', aiRoutes);
+
+// Register AI routes with error handling
+try {
+  app.use('/api/ai', aiRoutes);
+  console.log('✅ AI routes registered successfully at /api/ai');
+} catch (error) {
+  console.error('❌ Failed to register AI routes:', error);
+}
+
+// Test CORS endpoint
+app.get('/api/test-cors', (req, res) => {
+  console.log('🧪 Test CORS endpoint called from origin:', req.headers.origin);
+  res.status(200).json({
+    success: true,
+    message: 'CORS is working!',
+    origin: req.headers.origin || 'none',
+    timestamp: new Date().toISOString()
+  });
+});
 
 
 
