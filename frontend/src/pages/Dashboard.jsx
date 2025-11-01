@@ -100,6 +100,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [needsClassroomAuth, setNeedsClassroomAuth] = useState(false);
+  const [hasClassroomError, setHasClassroomError] = useState(false);
   
   // Study logging state
   const [studySession, setStudySession] = useState({
@@ -172,6 +173,7 @@ const Dashboard = () => {
             .then(res => {
               if (res.data.needsReauth || res.status === 403) {
                 setNeedsClassroomAuth(true);
+                setHasClassroomError(true);
                 if (res.data.authUrl) {
                   window._classroomAuthUrl = res.data.authUrl;
                 }
@@ -179,8 +181,12 @@ const Dashboard = () => {
               return res.data;
             })
             .catch((err) => {
-              if (err.response?.status === 403) {
+              if (err.response?.status === 403 || err.response?.data?.needsReauth) {
                 setNeedsClassroomAuth(true);
+                setHasClassroomError(true);
+                if (err.response?.data?.authUrl) {
+                  window._classroomAuthUrl = err.response.data.authUrl;
+                }
               }
               return { success: false, assignments: [] };
             })
@@ -228,7 +234,19 @@ const Dashboard = () => {
         }
       } catch (err) {
         console.error("Error loading dashboard:", err);
-        setError("Failed to load dashboard data. Please try again.");
+        
+        // Check if error is related to Google Classroom auth
+        const isClassroomAuthError = err.message?.includes('Google Classroom') || 
+                                     err.response?.status === 403 ||
+                                     hasClassroomError;
+        
+        if (!isClassroomAuthError && !needsClassroomAuth) {
+          setError("Failed to load dashboard data. Please try again.");
+        } else {
+          // Just log it, don't show error - auth prompt will show instead
+          console.log('Google Classroom requires authorization');
+          setHasClassroomError(true);
+        }
       } finally {
         setLoading(false);
       }

@@ -174,13 +174,37 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await api.post('/auth/logout');
+      // Clear session on backend
+      try {
+        await api.post('/auth/logout');
+      } catch (apiError) {
+        console.log('API logout call failed, proceeding with client-side cleanup');
+      }
+      
+      // Clear all user data from localStorage
+      localStorage.removeItem('userId');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userAvatar');
+      
+      // Clear state
       setUser(null);
       setCurrentAvatar(null);
-      localStorage.removeItem('userAvatar');
+      setIsUserMenuOpen(false);
+      setIsToolsOpen(false);
+      setIsMenuOpen(false);
+      
+      // Navigate to login
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
+      // Still clear localStorage even if API call fails
+      localStorage.removeItem('userId');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userAvatar');
+      setUser(null);
+      navigate('/login');
     }
   };
 
@@ -442,11 +466,14 @@ const Navbar = () => {
             </div>
 
             {/* Enhanced Tools Dropdown */}
-            <div className="relative flex-shrink-0" data-tools-menu>
+            <div className="relative flex-shrink-0" data-tools-menu onClick={(e) => e.stopPropagation()}>
               <motion.button
                 whileHover={{ y: -3, scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsToolsOpen(!isToolsOpen)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsToolsOpen(!isToolsOpen);
+                }}
                 className={`relative flex items-center space-x-2 xl:space-x-3 px-3 xl:px-4 py-2 xl:py-3 rounded-xl xl:rounded-2xl font-semibold transition-all duration-300 group overflow-hidden ${
                   isToolsOpen
                     ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white shadow-2xl border border-white/20'
@@ -483,7 +510,8 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -20, scale: 0.9 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="absolute top-full right-0 mt-3 w-80 bg-slate-800/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                    className="absolute top-full right-0 mt-3 w-80 bg-slate-800/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl z-[100] overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -549,7 +577,10 @@ const Navbar = () => {
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsUserMenuOpen(!isUserMenuOpen);
+                }}
                 className="group flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-white/10 to-white/5 hover:from-white/20 hover:to-white/10 rounded-xl sm:rounded-2xl px-2 sm:px-3 md:px-4 py-2 sm:py-3 transition-all duration-300 border border-white/20 hover:border-white/30 hover:shadow-2xl"
               >
                 <motion.div
@@ -599,7 +630,8 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -20, scale: 0.9 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="absolute right-0 mt-3 w-72 sm:w-80 bg-slate-800/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden z-50"
+                    className="absolute right-0 mt-3 w-72 sm:w-80 bg-slate-800/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden z-[100]"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <motion.div
                       initial={{ opacity: 0 }}
