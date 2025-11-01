@@ -177,7 +177,15 @@ export const googleClassroomController = {
 
       if (!coursesResponse.ok) {
         if (coursesResponse.status === 403) {
-          throw new Error('403: Google Classroom scopes not authorized. Please authorize Classroom access.');
+          console.error('❌ 403 Forbidden - Google Classroom scopes not authorized in getAllAssignments');
+          // Return 403 directly instead of throwing
+          return res.status(403).json({
+            success: false,
+            message: 'Google Classroom access not authorized',
+            error: 'Missing Google Classroom API permissions. Please authorize Classroom access.',
+            needsReauth: true,
+            authUrl: `${process.env.SERVER_URL || ''}/api/auth/google-classroom`
+          });
         }
         const errorText = await coursesResponse.text().catch(() => '');
         throw new Error(`Failed to fetch courses: ${coursesResponse.status} - ${errorText}`);
