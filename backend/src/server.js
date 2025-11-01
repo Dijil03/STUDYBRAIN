@@ -37,8 +37,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // CORS configuration
-const allowedOrigins = process.env.NODE_ENV === 'production' 
-  ? [process.env.FRONTEND_URL] 
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [process.env.FRONTEND_URL]
   : ["http://localhost:5173"];
 
 app.use(cors({
@@ -73,10 +73,7 @@ app.use(express.json());
 // Serve static files for uploaded avatars
 app.use('/uploads', express.static('uploads'));
 
-// Serve static files from the frontend build directory in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
-}
+// Frontend is deployed separately (Vercel), backend only serves API
 
 app.use("/api/auth", authRoutes);
 app.use("/api/homework", homeworkRoutes);
@@ -111,18 +108,14 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 404 handler
+// 404 handler - Backend only serves API routes
 app.use((req, res) => {
-  // In production, serve the React app for client-side routing
-  if (process.env.NODE_ENV === 'production' && !req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
-  } else {
-    res.status(404).json({
-      success: false,
-      message: 'Route not found',
-      path: req.originalUrl
-    });
-  }
+  res.status(404).json({
+    success: false,
+    message: 'API route not found',
+    path: req.originalUrl,
+    note: 'Frontend is deployed separately'
+  });
 });
 
 // Global error handler
