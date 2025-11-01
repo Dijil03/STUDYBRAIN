@@ -144,13 +144,16 @@ If you added environment variables after the initial deployment:
 
 #### Step B: Update OAuth Credentials (Production URLs)
 
+⚠️ **Important**: Redirect URI goes to BACKEND (Render), NOT Frontend (Vercel)!
+
 1. Go to **APIs & Services** → **Credentials**
 2. Click on your **OAuth 2.0 Client ID** to edit
 3. Add **Authorized JavaScript origins**:
-   - `https://your-app.vercel.app` (your Vercel frontend URL)
+   - `https://your-app.vercel.app` (your Vercel frontend URL - where users click the button)
    - Keep `http://localhost:5173` if you want local development
 4. Add **Authorized redirect URIs**:
-   - `https://your-backend.onrender.com/api/auth/google/callback` (your Render backend)
+   - ✅ `https://your-backend.onrender.com/api/auth/google/callback` (your Render backend - where Google sends the user back)
+   - ❌ NOT `https://your-app.vercel.app/api/auth/google/callback` (Vercel doesn't handle OAuth)
    - Keep `http://localhost:5001/api/auth/google/callback` if you want local development
 5. Click **"SAVE"**
 

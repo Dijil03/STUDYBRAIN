@@ -32,6 +32,10 @@ This error means Google rejected your OAuth request. Here's how to fix it:
 
 The redirect URI in Google Cloud Console **MUST match exactly** what your backend uses.
 
+### ⚠️ IMPORTANT: Use BACKEND URL (Render), NOT Frontend (Vercel)!
+
+The OAuth callback goes to your **backend server** (Render), not your frontend (Vercel).
+
 ### Check Your Backend URL:
 - Go to Render → Your service → Copy your URL (e.g., `https://studybrain-backend.onrender.com`)
 
@@ -43,6 +47,14 @@ The redirect URI in Google Cloud Console **MUST match exactly** what your backen
    ```
    https://your-backend.onrender.com/api/auth/google/callback
    ```
+   
+   **❌ DO NOT USE:**
+   - `https://your-app.vercel.app/api/auth/google/callback` ❌
+   - Vercel doesn't handle OAuth callbacks!
+   
+   **✅ CORRECT:**
+   - `https://your-backend.onrender.com/api/auth/google/callback` ✅
+   - This is your Render backend URL
    - ✅ Must start with `https://`
    - ✅ Must include `/api/auth/google/callback`
    - ✅ No trailing slash
