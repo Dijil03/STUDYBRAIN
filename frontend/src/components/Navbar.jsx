@@ -748,7 +748,7 @@ const Navbar = () => {
               animate={{ opacity: 1, height: 'auto', maxHeight: 'calc(100vh - 5rem)' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="lg:hidden border-t border-white/10 bg-slate-800/95 backdrop-blur-2xl relative z-[60] overflow-y-auto"
+              className="lg:hidden border-t border-white/10 bg-slate-900/98 relative z-[60] overflow-y-auto"
               data-menu
               onClick={(e) => e.stopPropagation()}
             >
@@ -871,7 +871,7 @@ const Navbar = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[50] lg:hidden"
+            className="fixed inset-0 bg-black/60 z-[50] lg:hidden"
             onClick={(e) => {
               e.stopPropagation();
               setIsMenuOpen(false);
