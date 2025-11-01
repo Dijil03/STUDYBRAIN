@@ -420,7 +420,7 @@ const Navbar = () => {
           </Link>
 
           {/* Enhanced Desktop Navigation - Better responsive */}
-          <div className="hidden lg:flex items-center space-x-2 xl:space-x-3 flex-1 justify-center max-w-4xl mx-4 overflow-hidden">
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-3 flex-1 justify-center max-w-6xl mx-2 xl:mx-4 overflow-x-auto scrollbar-hide">
             {mainNavLinks.map((link, index) => {
               const Icon = link.icon;
               return (
@@ -435,7 +435,7 @@ const Navbar = () => {
                 >
                   <Link
                     to={link.path}
-                    className={`relative flex items-center space-x-2 xl:space-x-3 px-3 xl:px-4 py-2 xl:py-3 rounded-xl xl:rounded-2xl font-semibold transition-all duration-300 group overflow-hidden ${
+                    className={`relative flex items-center space-x-1.5 xl:space-x-2 2xl:space-x-3 px-2 xl:px-3 2xl:px-4 py-2 xl:py-2.5 2xl:py-3 rounded-lg xl:rounded-xl 2xl:rounded-2xl font-semibold transition-all duration-300 group overflow-hidden flex-shrink-0 ${
                       isActive(link.path)
                         ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white shadow-2xl border border-white/20'
                         : 'text-white/70 hover:text-white hover:bg-white/10 hover:shadow-lg'
