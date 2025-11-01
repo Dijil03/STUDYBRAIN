@@ -762,9 +762,10 @@ const Navbar = () => {
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                 className="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-slate-900 shadow-2xl z-[60] lg:hidden overflow-y-auto"
                 data-menu
+                style={{ height: '100vh' }}
               >
                 {/* Menu Header */}
-                <div className="sticky top-0 bg-slate-900 border-b border-white/10 p-4 flex items-center justify-between z-10">
+                <div className="sticky top-0 bg-slate-900/95 backdrop-blur-sm border-b border-white/10 p-4 flex items-center justify-between z-10 shadow-lg">
                   <div className="flex items-center space-x-3">
                     <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
                       <Brain className="w-5 h-5 text-white" />
@@ -781,7 +782,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Menu Content */}
-                <div className="p-4 space-y-6">
+                <div className="p-4 space-y-6 pb-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
                   {/* Main Navigation */}
                   <div>
                     <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3 px-2">
