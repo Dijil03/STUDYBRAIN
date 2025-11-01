@@ -131,13 +131,29 @@ export const googleClassroomAuth = (req, res, next) => {
 export const googleCallback = (req, res, next) => {
   // Get client URL with fallback - MUST return a valid URL string, never undefined
   const getClientUrl = () => {
+    // Helper to normalize URL - ensure it has protocol
+    const normalizeUrl = (url) => {
+      if (!url) return null;
+      const trimmed = url.trim();
+      if (trimmed === '') return null;
+      
+      // If URL doesn't start with http:// or https://, add https://
+      if (!trimmed.match(/^https?:\/\//i)) {
+        return `https://${trimmed.replace(/^\/+/, '')}`; // Remove leading slashes if any
+      }
+      
+      return trimmed.replace(/\/$/, ''); // Remove trailing slash
+    };
+
     // Try CLIENT_URL first
-    if (process.env.CLIENT_URL && process.env.CLIENT_URL.trim() !== '') {
-      return process.env.CLIENT_URL.replace(/\/$/, '').trim(); // Remove trailing slash
+    if (process.env.CLIENT_URL) {
+      const normalized = normalizeUrl(process.env.CLIENT_URL);
+      if (normalized) return normalized;
     }
     // Try FRONTEND_URL as fallback
-    if (process.env.FRONTEND_URL && process.env.FRONTEND_URL.trim() !== '') {
-      return process.env.FRONTEND_URL.replace(/\/$/, '').trim(); // Remove trailing slash
+    if (process.env.FRONTEND_URL) {
+      const normalized = normalizeUrl(process.env.FRONTEND_URL);
+      if (normalized) return normalized;
     }
     // Production error - don't use undefined
     if (process.env.NODE_ENV === 'production') {
