@@ -40,39 +40,82 @@ const __dirname = path.dirname(__filename);
 
 // CORS headers MUST be set FIRST, before any other middleware
 // This is a manual implementation to ensure it always works
+// Define allowed origins
+const getAllowedOrigins = () => {
+  const allowed = [
+    'https://studybrain.vercel.app',
+    'https://www.studybrain.vercel.app',
+    process.env.CLIENT_URL,
+    process.env.FRONTEND_URL,
+  ].filter(Boolean);
+  
+  // Add localhost for development
+  if (process.env.NODE_ENV !== 'production') {
+    allowed.push('http://localhost:5173', 'http://localhost:3000');
+  }
+  
+  return allowed;
+};
+
+const allowedOrigins = getAllowedOrigins();
+console.log('✅ Allowed CORS origins:', allowedOrigins);
+
 app.use((req, res, next) => {
   // Log incoming request
-  console.log(`📥 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
-
-  // Set CORS headers immediately
   const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
+  console.log(`📥 ${req.method} ${req.path} - Origin: ${origin || 'none'}`);
+
+  // Check if origin is allowed
+  // Allow requests with no origin (like mobile apps or curl requests) only in development
+  const isAllowedOrigin = !origin 
+    ? (process.env.NODE_ENV !== 'production') 
+    : allowedOrigins.includes(origin);
+  
+  // Only set CORS headers if origin is allowed (or no origin in dev mode)
+  if (isAllowedOrigin) {
+    const requestOrigin = origin || '*';
+    res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie, X-CSRF-Token');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization, Set-Cookie');
+    res.setHeader('Access-Control-Max-Age', '86400');
   } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    console.warn(`⚠️ CORS: Blocked request from disallowed origin: ${origin}`);
   }
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie, X-CSRF-Token');
-  res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization, Set-Cookie');
-  res.setHeader('Access-Control-Max-Age', '86400');
 
   // Handle preflight OPTIONS requests immediately
   if (req.method === 'OPTIONS') {
-    console.log('✅ Handling OPTIONS preflight request');
-    return res.status(200).end();
+    if (isAllowedOrigin) {
+      console.log('✅ Handling OPTIONS preflight request from:', origin || 'no origin');
+      return res.status(200).end();
+    } else {
+      console.warn('❌ Rejecting OPTIONS preflight from disallowed origin:', origin);
+      return res.status(403).json({ error: 'CORS policy: Origin not allowed' });
+    }
   }
 
   next();
 });
 
-// CORS configuration - Allow all origins temporarily for debugging
-// TODO: Restrict to specific origins in production
+// CORS configuration - Use the same allowed origins
 const corsOptions = {
-  origin: true, // Allow all origins for now
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️ CORS: Origin not allowed: ${origin}`);
+      // In production, be strict; in development, be permissive
+      callback(null, process.env.NODE_ENV !== 'production');
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cookie', 'Set-Cookie'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cookie', 'Set-Cookie', 'X-CSRF-Token'],
   exposedHeaders: ['Content-Type', 'Authorization', 'Set-Cookie'],
   maxAge: 86400, // 24 hours
   preflightContinue: false,
@@ -170,26 +213,35 @@ app.get('/api/test-cors', (req, res) => {
 // Health check endpoint - with explicit CORS
 app.get('/health', (req, res) => {
   // Explicitly set CORS headers for health check
-  if (req.headers.origin) {
-    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  }
+  const origin = req.headers.origin;
+  const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
+  const requestOrigin = origin && isAllowedOrigin ? origin : (allowedOrigins[0] || '*');
+  
+  res.setHeader('Access-Control-Allow-Origin', requestOrigin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie, X-CSRF-Token');
 
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    corsConfigured: true
+    corsConfigured: true,
+    allowedOrigins: allowedOrigins
   });
 });
 
 // 404 handler - Backend only serves API routes
 app.use((req, res) => {
   // Ensure CORS headers are set for 404 responses too
-  if (req.headers.origin) {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-  }
+  const origin = req.headers.origin;
+  const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
+  const requestOrigin = origin && isAllowedOrigin ? origin : (allowedOrigins[0] || '*');
+  
+  res.header('Access-Control-Allow-Origin', requestOrigin);
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie, X-CSRF-Token');
 
   res.status(404).json({
     success: false,
@@ -204,10 +256,14 @@ app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
 
   // Ensure CORS headers are set before sending error response
-  if (req.headers.origin) {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-  }
+  const origin = req.headers.origin;
+  const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
+  const requestOrigin = origin && isAllowedOrigin ? origin : (allowedOrigins[0] || '*');
+  
+  res.header('Access-Control-Allow-Origin', requestOrigin);
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie, X-CSRF-Token');
 
   res.status(500).json({
     success: false,
@@ -222,7 +278,7 @@ connectDB().then(() => {
     console.log(`✅ Server is running on port ${PORT}`);
     console.log('✅ Server is ready to accept connections');
     console.log('✅ Using MongoDB session store');
-    console.log('✅ CORS configured to allow all origins');
+    console.log('✅ CORS configured with allowed origins:', allowedOrigins);
     console.log('✅ Test CORS endpoint: GET /api/test-cors');
     console.log('✅ AI routes: POST /api/ai/sessions');
   });
