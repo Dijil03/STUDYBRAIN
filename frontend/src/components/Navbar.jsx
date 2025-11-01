@@ -716,9 +716,13 @@ const Navbar = () => {
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden text-white/70 hover:text-white transition-all duration-300 p-2 sm:p-3 rounded-xl hover:bg-white/10 hover:shadow-lg flex-shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(!isMenuOpen);
+              }}
+              className="lg:hidden text-white/70 hover:text-white transition-all duration-300 p-2 sm:p-3 rounded-xl hover:bg-white/10 hover:shadow-lg flex-shrink-0 z-50 relative"
               aria-label="Toggle menu"
+              data-navbar
             >
               <motion.div
                 animate={{ rotate: isMenuOpen ? 90 : 0 }}
@@ -738,8 +742,9 @@ const Navbar = () => {
               animate={{ opacity: 1, height: 'auto', maxHeight: 'calc(100vh - 5rem)' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="lg:hidden border-t border-white/10 bg-slate-800/95 backdrop-blur-2xl relative z-10 overflow-y-auto"
+              className="lg:hidden border-t border-white/10 bg-slate-800/95 backdrop-blur-2xl relative z-[60] overflow-y-auto"
               data-menu
+              onClick={(e) => e.stopPropagation()}
             >
               <motion.div
                 initial={{ opacity: 0 }}
@@ -860,8 +865,11 @@ const Navbar = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setIsMenuOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[50] lg:hidden"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMenuOpen(false);
+            }}
           />
         )}
       </AnimatePresence>
