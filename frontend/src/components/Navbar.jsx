@@ -782,10 +782,10 @@ const Navbar = () => {
                 </div>
 
                 {/* Menu Content */}
-                <div className="p-4 space-y-6 pb-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
+                <div className="p-4 space-y-6 pb-8 relative z-0">
                   {/* Main Navigation */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3 px-2">
+                  <div className="relative z-10">
+                    <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3 px-2">
                       Navigation
                     </h3>
                     <div className="space-y-2">
@@ -802,19 +802,19 @@ const Navbar = () => {
                             <Link
                               to={link.path}
                               onClick={() => setIsMenuOpen(false)}
-                              className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group ${
+                              className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group relative z-20 ${
                                 active
                                   ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white border border-white/20'
-                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                                  : 'text-white/80 hover:text-white hover:bg-white/10'
                               }`}
                             >
-                              <Icon className={`w-5 h-5 ${active ? 'text-white' : link.color} transition-transform group-hover:scale-110`} />
-                              <span className="flex-1">{link.name}</span>
+                              <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-white' : link.color} transition-transform group-hover:scale-110`} />
+                              <span className="flex-1 text-white">{link.name}</span>
                               {active && (
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
-                                  className="w-2 h-2 bg-purple-400 rounded-full"
+                                  className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"
                                 />
                               )}
                             </Link>
@@ -835,10 +835,10 @@ const Navbar = () => {
                   </div>
 
                   {/* Tools Section */}
-                  <div className="pt-4 border-t border-white/10">
+                  <div className="pt-4 border-t border-white/10 relative z-10">
                     <div className="flex items-center space-x-3 mb-3 px-2">
                       <Settings className="w-5 h-5 text-purple-400" />
-                      <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                      <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wider">
                         Tools
                       </h3>
                     </div>
@@ -856,19 +856,19 @@ const Navbar = () => {
                             <Link
                               to={tool.path}
                               onClick={() => setIsMenuOpen(false)}
-                              className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                              className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative z-20 ${
                                 active
                                   ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-white/20'
-                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                                  : 'text-white/80 hover:text-white hover:bg-white/10'
                               }`}
                             >
-                              <Icon className={`w-4 h-4 ${tool.color} transition-transform group-hover:scale-110`} />
-                              <span className="flex-1">{tool.name}</span>
+                              <Icon className={`w-4 h-4 flex-shrink-0 ${tool.color} transition-transform group-hover:scale-110`} />
+                              <span className="flex-1 text-white">{tool.name}</span>
                               {active && (
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
-                                  className="w-1.5 h-1.5 bg-purple-400 rounded-full"
+                                  className="w-1.5 h-1.5 bg-purple-400 rounded-full flex-shrink-0"
                                 />
                               )}
                             </Link>
