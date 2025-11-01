@@ -251,58 +251,61 @@ const StudyTime = () => {
     <StudyTimeLimit limits={studyTimeLimits}>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
         <Navbar />
+        
+        {/* Responsive container padding */}
+        <div className="px-2 sm:px-4 md:px-6 lg:px-8">
 
-      {/* Main card styling */}
-      <div className="max-w-4xl mx-auto p-8 lg:p-10 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl mt-12 mb-10 border-t-4 border-indigo-500 transform transition duration-500 hover:shadow-indigo-500/30">
-        {/* Header Section with the new Timer Button */}
-        <header className="mb-8 border-b pb-4 border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <div>
-            <h2 className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center">
-              <RocketLaunchIcon className="w-8 h-8 mr-3 text-indigo-500" />
-              Study Session Logger
+      {/* Main card styling - Responsive padding and margins */}
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 lg:p-10 bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-2xl mt-4 sm:mt-8 lg:mt-12 mb-6 sm:mb-8 lg:mb-10 border-t-4 border-indigo-500 transform transition duration-500 hover:shadow-indigo-500/30">
+        {/* Header Section with the new Timer Button - Responsive layout */}
+        <header className="mb-6 sm:mb-8 border-b pb-3 sm:pb-4 border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+          <div className="flex-1">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center flex-wrap">
+              <RocketLaunchIcon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 mr-2 sm:mr-3 text-indigo-500 flex-shrink-0" />
+              <span className="break-words">Study Session Logger</span>
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-2 text-lg">
+            <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm sm:text-base md:text-lg">
               Log your focused time to track your progress and goals.
             </p>
           </div>
 
-          <div className="flex gap-2 space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {/* --- New Timer Button --- */}
             <Link
               to="/study-timer"
-              // Prominent styling to draw attention
-              className="flex items-center bg-purple-600 text-white px-4 py-2 rounded-xl text-md font-semibold shadow-md shadow-purple-500/50 hover:bg-purple-700 transition duration-300 transform hover:scale-105"
+              // Prominent styling to draw attention - Responsive sizing
+              className="flex items-center justify-center bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold shadow-md shadow-purple-500/50 hover:bg-purple-700 transition duration-300 transform hover:scale-105 w-full sm:w-auto"
             >
-              <ClockIcon className="w-5 h-5 mr-2" />
-              Start Timer
+              <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" />
+              <span className="whitespace-nowrap">Start Timer</span>
             </Link>
             
             {/* Refresh Limits Button */}
             <button
               onClick={fetchStudyTimeLimits}
-              className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-xl text-md font-semibold shadow-md shadow-blue-500/50 hover:bg-blue-700 transition duration-300 transform hover:scale-105"
+              className="flex items-center justify-center bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold shadow-md shadow-blue-500/50 hover:bg-blue-700 transition duration-300 transform hover:scale-105 w-full sm:w-auto"
               title="Refresh limits from backend"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              Refresh
+              <span className="whitespace-nowrap">Refresh</span>
             </button>
           </div>
           {/* ------------------------- */}
         </header>
 
-        {/* Session Limit Warning */}
+        {/* Session Limit Warning - Responsive */}
         {studyTimeLimits && !studyTimeLimits.isUnlimited && studyTimeLimits.remaining <= 0 && (
-          <div className="mb-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">⚠️</span>
+          <div className="mb-4 sm:mb-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="flex items-start sm:items-center space-x-2 sm:space-x-3 flex-1">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
+                  <span className="text-white text-xs sm:text-sm">⚠️</span>
                 </div>
-                <div>
-                  <p className="text-gray-800 dark:text-white font-semibold">Daily Session Limit Reached</p>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-800 dark:text-white font-semibold text-sm sm:text-base">Daily Session Limit Reached</p>
+                  <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                     You've reached your limit of {studyTimeLimits.max} sessions per day. 
                     Upgrade to Study Pro for unlimited sessions!
                   </p>
@@ -310,7 +313,7 @@ const StudyTime = () => {
               </div>
               <button
                 onClick={() => window.location.href = '/pricing'}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 w-full sm:w-auto whitespace-nowrap"
               >
                 Upgrade Now
               </button>
@@ -319,20 +322,20 @@ const StudyTime = () => {
         )}
 
 
-        {/* Session Counter */}
+        {/* Session Counter - Responsive */}
         {studyTimeLimits && !studyTimeLimits.isUnlimited && (
-          <div className="mb-6 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <ClockIcon className="w-5 h-5 text-blue-500" />
-                <div>
-                  <p className="text-gray-800 dark:text-white font-semibold">Today's Sessions</p>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+          <div className="mb-4 sm:mb-6 bg-blue-500/10 border border-blue-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="flex items-center space-x-2 sm:space-x-3 flex-1">
+                <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-gray-800 dark:text-white font-semibold text-sm sm:text-base">Today's Sessions</p>
+                  <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                     {studyTimeLimits.current} / {studyTimeLimits.max} sessions used
                   </p>
                 </div>
               </div>
-              <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="w-full sm:w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
                   className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min((studyTimeLimits.current / studyTimeLimits.max) * 100, 100)}%` }}
@@ -342,27 +345,27 @@ const StudyTime = () => {
           </div>
         )}
 
-        {/* --- Logging Form --- */}
-        <section className="space-y-6">
+        {/* --- Logging Form --- Responsive spacing */}
+        <section className="space-y-4 sm:space-y-6">
           {/* Homework Name Input */}
           <div>
-            <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 flex items-center text-lg">
-              <BookOpenIcon className="w-5 h-5 mr-2 text-indigo-500" />
-              Homework/Subject Name
+            <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 flex items-center text-base sm:text-lg">
+              <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-indigo-500 flex-shrink-0" />
+              <span className="break-words">Homework/Subject Name</span>
             </label>
             <input
               type="text"
               value={homeworkName}
               onChange={(e) => setHomeworkName(e.target.value)}
-              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-3 text-lg placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-2.5 sm:p-3 text-base sm:text-lg placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
               placeholder="e.g. Math Algebra, Science Biology, English Essay"
             />
           </div>
 
           {/* Duration Input */}
           <div>
-            <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 flex items-center text-lg">
-              <ClockIcon className="w-5 h-5 mr-2 text-indigo-500" />
+            <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 flex items-center text-base sm:text-lg">
+              <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-indigo-500 flex-shrink-0" />
               Duration (minutes)
             </label>
             <input
@@ -370,75 +373,76 @@ const StudyTime = () => {
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
               min="1"
-              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-3 text-xl placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-2.5 sm:p-3 text-lg sm:text-xl placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
               placeholder="e.g. 45"
             />
           </div>
 
           {/* Feedback Input */}
           <div>
-            <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 flex items-center text-lg">
-              <PencilSquareIcon className="w-5 h-5 mr-2 text-indigo-500" />
+            <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 flex items-center text-base sm:text-lg">
+              <PencilSquareIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-indigo-500 flex-shrink-0" />
               Study Feedback
             </label>
             <textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-3 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-2.5 sm:p-3 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 text-sm sm:text-base"
               rows={4}
               placeholder="How did the study session go? What did you learn? Any challenges or insights?"
             />
           </div>
 
-          {/* Submit Button */}
+          {/* Submit Button - Responsive */}
           <button
             onClick={handleLogStudy}
             disabled={!homeworkName.trim() || !duration || duration <= 0 || submitting}
-            className="w-full flex justify-center items-center bg-indigo-600 text-white px-6 py-3 rounded-xl text-lg font-bold shadow-lg shadow-indigo-500/50 hover:bg-indigo-700 transition duration-300 disabled:bg-indigo-400 disabled:shadow-none"
+            className="w-full flex justify-center items-center bg-indigo-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-base sm:text-lg font-bold shadow-lg shadow-indigo-500/50 hover:bg-indigo-700 transition duration-300 disabled:bg-indigo-400 disabled:shadow-none"
           >
             {submitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Logging Session...
+                <span className="whitespace-nowrap">Logging Session...</span>
               </>
             ) : (
               <>
-                <CheckCircleIcon className="w-6 h-6 mr-2" />
-                Log Study Session
+                <CheckCircleIcon className="w-5 h-5 sm:w-6 sm:h-6 mr-2 flex-shrink-0" />
+                <span className="whitespace-nowrap">Log Study Session</span>
               </>
             )}
           </button>
         </section>
 
-        {/* --- Study Log Section --- */}
+        {/* --- Study Log Section --- Responsive */}
         {loading ? (
-          <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-              <span className="ml-3 text-gray-600 dark:text-gray-400">Loading study sessions...</span>
+          <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-center py-6 sm:py-8">
+              <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-indigo-600"></div>
+              <span className="ml-3 text-sm sm:text-base text-gray-600 dark:text-gray-400">Loading study sessions...</span>
             </div>
           </div>
         ) : studyLog.length > 0 ? (
-          <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center">
-              📋 Recent Study Log Entries
+          <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 sm:mb-6 flex items-center">
+              <span className="mr-2">📋</span>
+              <span>Recent Study Log Entries</span>
             </h3>
 
-            <ul className="space-y-4">
+            <ul className="space-y-3 sm:space-y-4">
               {studyLog.map((entry, index) => (
                 <li
                   key={entry.id || index}
-                  className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 hover:shadow-xl transition duration-300"
+                  className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow-lg border-l-4 border-indigo-500 hover:shadow-xl transition duration-300"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">
+                  <div className="flex justify-between items-start mb-2 gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white break-words">
                         {entry.homeworkName}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 break-words">
                         <strong className="font-semibold">Logged:</strong>{" "}
                         {entry.timestamp}
                       </p>
@@ -446,13 +450,13 @@ const StudyTime = () => {
                     <button
                       onClick={() => handleDeleteSession(entry.id, index)}
                       disabled={deleting}
-                      className="ml-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ml-2 sm:ml-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                       title="Delete Study Session"
                     >
                       {deleting ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
                       ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       )}
@@ -460,12 +464,12 @@ const StudyTime = () => {
                   </div>
 
                   <div className="flex items-center text-indigo-600 dark:text-indigo-400 font-semibold mb-3">
-                    <ClockIcon className="w-5 h-5 mr-1" />
-                    <span className="text-lg">{entry.duration} minutes</span>
+                    <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 flex-shrink-0" />
+                    <span className="text-base sm:text-lg">{entry.duration} minutes</span>
                   </div>
 
                   {entry.feedback && (
-                    <p className="text-gray-700 dark:text-gray-300 mb-4 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border-l-2 border-indigo-200 dark:border-indigo-800">
+                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-4 bg-gray-50 dark:bg-gray-800 p-2 sm:p-3 rounded-lg border-l-2 border-indigo-200 dark:border-indigo-800 break-words">
                       <strong className="text-gray-800 dark:text-gray-200">
                         Feedback:
                       </strong>{" "}
@@ -477,22 +481,23 @@ const StudyTime = () => {
             </ul>
           </div>
         ) : (
-          <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BookOpenIcon className="w-8 h-8 text-gray-400" />
+          <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-center py-6 sm:py-8">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <BookOpenIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
                 No Study Sessions Yet
               </h3>
-              <p className="text-gray-500 dark:text-gray-500">
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-500 px-4">
                 Start logging your study sessions to track your progress!
               </p>
             </div>
           </div>
         )}
+        </div>
+        </div>
       </div>
-    </div>
     
     {/* Motivational Message Modal */}
     <MotivationalMessage
