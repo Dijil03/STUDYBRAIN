@@ -15,5 +15,18 @@ export default defineConfig({
     fs: {
       allow: ['..']
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 1000, // Set to 1000 KB (1 MB) to reduce warnings
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor chunks for better caching
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['framer-motion', 'lucide-react', '@heroicons/react'],
+          'chart-vendor': ['chart.js', 'react-chartjs-2'],
+        }
+      }
+    }
   }
 })
