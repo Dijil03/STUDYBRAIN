@@ -2,11 +2,37 @@ import { OpenAI } from "openai";
 import AIChat from '../models/ai.model.js';
 import { v4 as uuidv4 } from 'uuid';
 
-// Initialize OpenAI client with Hugging Face
-const client = new OpenAI({
-  baseURL: "https://router.huggingface.co/v1",
-  apiKey: process.env.HF_TOKEN,
-});
+// Lazy initialization of OpenAI client with Hugging Face
+// Only initialize when needed and if HF_TOKEN is available
+let client = null;
+
+const getClient = () => {
+  if (!client) {
+    const hfToken = process.env.HF_TOKEN;
+    if (!hfToken) {
+      throw new Error('HF_TOKEN environment variable is not set. Please add HF_TOKEN to your Render environment variables.');
+    }
+    // OpenAI library checks for OPENAI_API_KEY env var, so we set it temporarily
+    // to avoid the initialization error, then override with our apiKey option
+    const originalKey = process.env.OPENAI_API_KEY;
+    try {
+      // Temporarily set OPENAI_API_KEY to prevent library error
+      process.env.OPENAI_API_KEY = hfToken;
+      client = new OpenAI({
+        baseURL: "https://router.huggingface.co/v1",
+        apiKey: hfToken,
+      });
+    } finally {
+      // Restore original value (or delete if it didn't exist)
+      if (originalKey) {
+        process.env.OPENAI_API_KEY = originalKey;
+      } else {
+        delete process.env.OPENAI_API_KEY;
+      }
+    }
+  }
+  return client;
+};
 
 // Create a new chat session
 export const createChatSession = async (req, res) => {
@@ -108,8 +134,11 @@ export const sendMessage = async (req, res) => {
     let fullResponse = '';
     let tokenCount = 0;
 
+    // Check if client is available
+    const aiClient = getClient();
+    
     // Create streaming completion
-    const stream = await client.chat.completions.create({
+    const stream = await aiClient.chat.completions.create({
       model,
       messages: messagesForAI,
       max_tokens: 1000,
@@ -158,13 +187,23 @@ export const sendMessage = async (req, res) => {
   } catch (error) {
     console.error('Error sending message:', error);
 
-    // Send error in streaming format
-    res.write(`data: ${JSON.stringify({
-      type: 'error',
-      content: 'Sorry, I encountered an error. Please try again.',
-      isComplete: true,
-      error: error.message
-    })}\n\n`);
+    // Check if it's a missing token error
+    if (error.message.includes('HF_TOKEN') || error.message.includes('OPENAI_API_KEY')) {
+      res.write(`data: ${JSON.stringify({
+        type: 'error',
+        content: 'AI service is not configured. Please contact support.',
+        isComplete: true,
+        error: 'Missing HF_TOKEN environment variable'
+      })}\n\n`);
+    } else {
+      // Send error in streaming format
+      res.write(`data: ${JSON.stringify({
+        type: 'error',
+        content: 'Sorry, I encountered an error. Please try again.',
+        isComplete: true,
+        error: error.message
+      })}\n\n`);
+    }
 
     res.end();
   }
@@ -397,8 +436,11 @@ Return your response in the following JSON format:
 
 Generate ${numQuestions} well-crafted questions now:`;
 
+    // Check if client is available
+    const aiClient = getClient();
+    
     // Call AI to generate assessment
-    const completion = await client.chat.completions.create({
+    const completion = await aiClient.chat.completions.create({
       model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
       messages: [
         {
@@ -485,6 +527,16 @@ Generate ${numQuestions} well-crafted questions now:`;
 
   } catch (error) {
     console.error('Error generating assessment:', error);
+    
+    // Check if it's a missing token error
+    if (error.message.includes('HF_TOKEN') || error.message.includes('OPENAI_API_KEY')) {
+      return res.status(503).json({
+        success: false,
+        message: 'AI service is not configured. Please contact support.',
+        error: 'Missing HF_TOKEN environment variable'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Failed to generate assessment',
