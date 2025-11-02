@@ -491,9 +491,12 @@ const Badges = () => {
       return badge.threshold;
     }
 
-    // Get progress from userProgress object
-    const progressKey = badge.id.replace(/_/g, '_');
-    return userProgress[progressKey] || 0;
+    // Get progress from userProgress object (keyed by badge ID)
+    const progressData = userProgress[badge.id];
+    if (progressData && typeof progressData === 'object') {
+      return progressData.progress || 0;
+    }
+    return progressData || 0;
   };
 
   // Memoize the sorting and filtering for performance and stable list order

@@ -156,9 +156,19 @@ export const getUserBadges = async (req, res) => {
     const userBadges = await UserBadge.find({
       userId,
       isEarned: true
-    }).populate('badgeId');
+    });
 
-    res.json({ earned: userBadges });
+    // Return array format that frontend expects
+    // Map userBadges to include badgeId and other fields
+    const badgesList = userBadges.map(ub => ({
+      id: ub.badgeId,
+      badgeId: ub.badgeId,
+      earnedAt: ub.earnedAt,
+      progress: ub.progress,
+      isEarned: ub.isEarned
+    }));
+
+    res.json(badgesList);
   } catch (error) {
     console.error('Error fetching user badges:', error);
     res.status(500).json({ error: 'Failed to fetch user badges' });
@@ -422,13 +432,14 @@ export const getUserBadgeProgress = async (req, res) => {
     const badges = await Badge.find({ isActive: true });
     const userBadges = await UserBadge.find({ userId });
 
-    const progressData = badges.map(badge => {
+    // Create progress object keyed by badge ID for easy lookup
+    const progressObj = {};
+    
+    badges.forEach(badge => {
       const userBadge = userBadges.find(ub => ub.badgeId === badge.id);
       const progress = calculateProgress(badge, homeworkData, studyData);
 
-      return {
-        badgeId: badge.id,
-        title: badge.title,
+      progressObj[badge.id] = {
         progress: Math.min(progress, badge.threshold),
         threshold: badge.threshold,
         isEarned: userBadge ? userBadge.isEarned : false,
@@ -436,7 +447,14 @@ export const getUserBadgeProgress = async (req, res) => {
       };
     });
 
-    res.json({ progress: progressData });
+    // Calculate total completed activities
+    const totalCompleted = homeworkData.completedCount + studyData.sessionCount;
+
+    // Return format that frontend expects
+    res.json({
+      ...progressObj,
+      totalCompleted
+    });
   } catch (error) {
     console.error('Error fetching badge progress:', error);
     res.status(500).json({ error: 'Failed to fetch badge progress' });
