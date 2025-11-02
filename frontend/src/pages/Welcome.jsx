@@ -295,18 +295,18 @@ const Welcome = () => {
               </motion.button>
             </div>
 
-        <button
+        <button
               className={`md:hidden p-2 rounded-xl transition-colors ${
                 isDarkMode 
                   ? isMenuOpen ? 'bg-slate-700 text-white' : 'bg-slate-800 text-gray-300'
                   : isMenuOpen ? 'bg-gray-200 text-gray-900' : 'bg-gray-100 text-gray-600'
               }`}
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
-      </div>
+        </button>
+      </div>
+      </div>
       
       {/* Mobile Menu */}
       {isMenuOpen && (

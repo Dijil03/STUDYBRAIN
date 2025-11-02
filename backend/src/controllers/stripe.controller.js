@@ -88,7 +88,7 @@ export const createCheckoutSession = async (req, res) => {
     // Get frontend URL with proper fallback
     const frontendUrl = getFrontendUrl();
     console.log('Using frontend URL for Stripe redirects:', frontendUrl);
-    
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: user.email,
