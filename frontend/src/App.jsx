@@ -4,6 +4,7 @@ import ThemeWrapper from "./components/ThemeWrapper";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LoadingSkeleton from "./components/LoadingSkeleton";
 import SEOProvider from "./components/SEOProvider";
+import JoinViaInvite from "./pages/JoinViaInvite";
 
 // Lazy load all pages for better performance
 const Welcome = lazy(() => import("./pages/Welcome"));
@@ -93,6 +94,7 @@ const App = () => {
             <Route path="/loading-demo" element={<LoadingDemo />} />
             <Route path="/ai" element={<AI />} />
             <Route path="/ai-tutor" element={<AITutorPage />} />
+            <Route path="/study-groups" element={<JoinViaInvite />} />
             </Routes>
             </Suspense>
         </ThemeWrapper>
