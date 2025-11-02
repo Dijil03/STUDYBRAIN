@@ -10,6 +10,23 @@ dotenv.config();
 // Initialize Stripe with your key (test or live based on environment)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// Helper function to get frontend URL with proper fallbacks
+const getFrontendUrl = () => {
+  // Priority: FRONTEND_URL > CLIENT_URL > Vercel production URL > localhost
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL;
+  }
+  if (process.env.CLIENT_URL) {
+    return process.env.CLIENT_URL;
+  }
+  // In production, default to Vercel URL
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://studybrain.vercel.app';
+  }
+  // Development fallback
+  return 'http://localhost:5173';
+};
+
 // Create checkout session
 export const createCheckoutSession = async (req, res) => {
   try {
@@ -68,6 +85,10 @@ export const createCheckoutSession = async (req, res) => {
     console.log('User email:', user.email);
     console.log('Tier:', tier, 'Billing Cycle:', billingCycle);
 
+    // Get frontend URL with proper fallback
+    const frontendUrl = getFrontendUrl();
+    console.log('Using frontend URL for Stripe redirects:', frontendUrl);
+    
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: user.email,
@@ -79,8 +100,8 @@ export const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-success?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}?canceled=true`,
+      success_url: `${frontendUrl}/payment-success?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/pricing?canceled=true`,
       metadata: {
         userId: userId,
         tier: tier,
@@ -157,7 +178,7 @@ export const createPortalSession = async (req, res) => {
     // Create portal session
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerIdToUse,
-      return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`,
+      return_url: `${getFrontendUrl()}/profile`,
     });
 
     console.log('Portal session created:', portalSession.id);
