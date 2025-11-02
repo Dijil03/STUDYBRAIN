@@ -313,18 +313,56 @@ const Dashboard = () => {
 
   const fetchRecentStudySessions = async () => {
     try {
+      if (!userId) {
+        console.warn('No userId available for fetching study sessions');
+        return;
+      }
+
       const response = await api.get(`/studytime/${userId}`);
-      const sessions = response.data.slice(0, 3).map((session, index) => ({
-        id: session._id || session.id || `temp-${index}`,
-        homeworkName: session.subject,
-        duration: session.duration,
-        feedback: session.notes || "",
-        timestamp: dayjs(session.date).format("MMM D, YYYY [at] h:mm A"),
-        productivity: session.productivity,
-      }));
+      
+      // Ensure response.data is an array
+      if (!Array.isArray(response.data)) {
+        console.error('Invalid response format from study sessions API:', response.data);
+        setRecentStudySessions([]);
+        return;
+      }
+
+      const sessions = response.data.slice(0, 3).map((session, index) => {
+        // Handle date field - use createdAt if date is missing
+        const sessionDate = session.date || session.createdAt || new Date();
+        
+        // Safely format the date
+        let formattedTimestamp;
+        try {
+          formattedTimestamp = dayjs(sessionDate).format("MMM D, YYYY [at] h:mm A");
+          if (formattedTimestamp === 'Invalid Date') {
+            formattedTimestamp = dayjs().format("MMM D, YYYY [at] h:mm A");
+          }
+        } catch (dateError) {
+          console.warn('Error formatting date:', dateError, 'Session:', session);
+          formattedTimestamp = 'Date unavailable';
+        }
+
+        return {
+          id: session._id || session.id || `temp-${index}`,
+          homeworkName: session.subject || 'Untitled Session',
+          duration: session.duration || 0,
+          feedback: session.notes || "",
+          timestamp: formattedTimestamp,
+          productivity: session.productivity,
+        };
+      });
+      
       setRecentStudySessions(sessions);
     } catch (error) {
       console.error('Error fetching recent study sessions:', error);
+      // Set empty array on error to prevent display issues
+      setRecentStudySessions([]);
+      
+      // Only show error if it's not a network/CORS issue (to avoid spam)
+      if (error.response?.status !== 401 && error.response?.status !== 403) {
+        console.warn('Study sessions could not be loaded. This may be due to network issues.');
+      }
     }
   };
 

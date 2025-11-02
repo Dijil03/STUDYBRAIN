@@ -72,10 +72,26 @@ export const logSession = async (req, res) => {
 // Get all sessions for a user
 export const getSessions = async (req, res) => {
   try {
-    const sessions = await StudySession.find({ userId: req.params.userId }).sort({ date: -1 });
-    res.status(200).json(sessions);
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ 
+        success: false,
+        error: "User ID is required" 
+      });
+    }
+
+    const sessions = await StudySession.find({ userId }).sort({ date: -1 });
+    
+    // Always return an array, even if empty
+    res.status(200).json(Array.isArray(sessions) ? sessions : []);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch study sessions" });
+    console.error("Error fetching study sessions:", err);
+    res.status(500).json({ 
+      success: false,
+      error: "Failed to fetch study sessions",
+      message: err.message 
+    });
   }
 };
 

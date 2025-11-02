@@ -48,12 +48,12 @@ const getAllowedOrigins = () => {
     process.env.CLIENT_URL,
     process.env.FRONTEND_URL,
   ].filter(Boolean);
-  
+
   // Add localhost for development
   if (process.env.NODE_ENV !== 'production') {
     allowed.push('http://localhost:5173', 'http://localhost:3000');
   }
-  
+
   return allowed;
 };
 
@@ -67,10 +67,10 @@ app.use((req, res, next) => {
 
   // Check if origin is allowed
   // Allow requests with no origin (like mobile apps or curl requests) only in development
-  const isAllowedOrigin = !origin 
-    ? (process.env.NODE_ENV !== 'production') 
+  const isAllowedOrigin = !origin
+    ? (process.env.NODE_ENV !== 'production')
     : allowedOrigins.includes(origin);
-  
+
   // Only set CORS headers if origin is allowed (or no origin in dev mode)
   if (isAllowedOrigin) {
     const requestOrigin = origin || '*';
@@ -103,7 +103,7 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -216,7 +216,7 @@ app.get('/health', (req, res) => {
   const origin = req.headers.origin;
   const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
   const requestOrigin = origin && isAllowedOrigin ? origin : (allowedOrigins[0] || '*');
-  
+
   res.setHeader('Access-Control-Allow-Origin', requestOrigin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
@@ -237,7 +237,7 @@ app.use((req, res) => {
   const origin = req.headers.origin;
   const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
   const requestOrigin = origin && isAllowedOrigin ? origin : (allowedOrigins[0] || '*');
-  
+
   res.header('Access-Control-Allow-Origin', requestOrigin);
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
@@ -259,7 +259,7 @@ app.use((err, req, res, next) => {
   const origin = req.headers.origin;
   const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
   const requestOrigin = origin && isAllowedOrigin ? origin : (allowedOrigins[0] || '*');
-  
+
   res.header('Access-Control-Allow-Origin', requestOrigin);
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
