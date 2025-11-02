@@ -237,6 +237,15 @@ const Navbar = () => {
   useEffect(() => {
     console.log('🔍 Navbar mainNavLinks:', mainNavLinks.map(l => l.name));
     console.log('🔍 Pricing exists?', mainNavLinks.some(l => l.name === 'Pricing'));
+    console.log('🔍 Pricing link details:', mainNavLinks.find(l => l.name === 'Pricing'));
+    console.log('🔍 Total nav links:', mainNavLinks.length);
+    // Check if Pricing is rendered
+    const pricingElement = document.querySelector('[href="/pricing"]');
+    console.log('🔍 Pricing DOM element found?', !!pricingElement);
+    if (pricingElement) {
+      console.log('🔍 Pricing element styles:', window.getComputedStyle(pricingElement));
+      console.log('🔍 Pricing element visible?', pricingElement.offsetParent !== null);
+    }
   }, []);
 
   const toolsDropdown = [
@@ -427,7 +436,7 @@ const Navbar = () => {
           </Link>
 
           {/* Enhanced Desktop Navigation - Better responsive */}
-          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 flex-1 justify-center mx-2 xl:mx-4">
+          <div className="hidden lg:flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2 flex-1 justify-center mx-1 lg:mx-2 xl:mx-4 flex-wrap gap-1">
             {mainNavLinks.map((link, index) => {
               const Icon = link.icon;
               // Highlight Pricing link to make it more visible
@@ -441,28 +450,32 @@ const Navbar = () => {
                   whileHover={{ y: -3, scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="flex-shrink-0"
-                  style={{ display: 'block' }} // Force display
+                  style={{ display: 'block', visibility: 'visible' }} // Force display and visibility
                 >
                   <Link
                     to={link.path}
-                    className={`relative flex items-center space-x-1.5 xl:space-x-2 2xl:space-x-3 px-2 xl:px-3 2xl:px-4 py-2 xl:py-2.5 2xl:py-3 rounded-lg xl:rounded-xl 2xl:rounded-2xl font-semibold transition-all duration-300 group overflow-hidden flex-shrink-0 ${
+                    className={`relative flex items-center space-x-1 lg:space-x-1.5 xl:space-x-2 2xl:space-x-3 px-1.5 lg:px-2 xl:px-3 2xl:px-4 py-1.5 lg:py-2 xl:py-2.5 2xl:py-3 rounded-lg xl:rounded-xl 2xl:rounded-2xl font-semibold transition-all duration-300 group overflow-hidden flex-shrink-0 ${
                       isActive(link.path)
                         ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white shadow-2xl border border-white/20'
                         : isPricing 
-                        ? 'text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 hover:shadow-lg border border-yellow-500/30'
+                        ? 'bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 text-yellow-300 hover:text-yellow-200 hover:bg-yellow-500/20 hover:shadow-lg border-2 border-yellow-500/50 shadow-yellow-500/20'
                         : 'text-white/70 hover:text-white hover:bg-white/10 hover:shadow-lg'
                     }`}
+                    style={{ 
+                      minWidth: isPricing ? 'auto' : 'auto',
+                      zIndex: isPricing ? 10 : 1 
+                    }}
                   >
                     <motion.div
                       animate={{ 
-                        rotate: isActive(link.path) ? [0, 5, -5, 0] : 0,
-                        scale: isActive(link.path) ? [1, 1.1, 1] : 1
+                        rotate: isActive(link.path) ? [0, 5, -5, 0] : (isPricing ? [0, 5, -5, 0] : 0),
+                        scale: isActive(link.path) ? [1, 1.1, 1] : (isPricing ? [1, 1.05, 1] : 1)
                       }}
-                      transition={{ duration: 2, repeat: isActive(link.path) ? Infinity : 0 }}
+                      transition={{ duration: 2, repeat: (isActive(link.path) || isPricing) ? Infinity : 0 }}
                     >
-                      <Icon className={`w-4 h-4 xl:w-5 xl:h-5 ${isActive(link.path) ? 'text-white' : (isPricing ? 'text-yellow-400' : link.color)} group-hover:scale-110 transition-transform`} />
+                      <Icon className={`w-3.5 h-3.5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 ${isActive(link.path) ? 'text-white' : (isPricing ? 'text-yellow-300' : link.color)} group-hover:scale-110 transition-transform`} />
                     </motion.div>
-                    <span className={`text-xs xl:text-sm font-medium whitespace-nowrap ${isPricing ? 'font-bold' : ''}`}>{link.name}</span>
+                    <span className={`text-[10px] lg:text-xs xl:text-sm font-medium whitespace-nowrap ${isPricing ? 'font-bold text-yellow-300' : ''}`}>{link.name}</span>
                     
                     {isActive(link.path) && (
                       <motion.div
@@ -470,6 +483,14 @@ const Navbar = () => {
                         className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl xl:rounded-2xl border border-white/30"
                         initial={false}
                         transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
+                    )}
+                    
+                    {isPricing && !isActive(link.path) && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 rounded-lg xl:rounded-xl"
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
                       />
                     )}
                     
@@ -807,12 +828,14 @@ const Navbar = () => {
                       {mainNavLinks.map((link, index) => {
                         const Icon = link.icon;
                         const active = isActive(link.path);
+                        const isPricing = link.name === 'Pricing';
                         return (
                           <motion.div
                             key={link.name}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.05 }}
+                            style={{ display: 'block', visibility: 'visible' }}
                           >
                             <Link
                               to={link.path}
@@ -820,16 +843,26 @@ const Navbar = () => {
                               className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group relative z-20 ${
                                 active
                                   ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-white border border-white/20'
+                                  : isPricing
+                                  ? 'bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 text-yellow-300 border-2 border-yellow-500/50 hover:bg-yellow-500/30'
                                   : 'text-white/80 hover:text-white hover:bg-white/10'
                               }`}
+                              style={{ visibility: 'visible', display: 'flex' }}
                             >
-                              <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-white' : link.color} transition-transform group-hover:scale-110`} />
-                              <span className="flex-1 text-white">{link.name}</span>
+                              <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-white' : (isPricing ? 'text-yellow-300' : link.color)} transition-transform group-hover:scale-110`} />
+                              <span className={`flex-1 ${isPricing ? 'text-yellow-300 font-bold' : 'text-white'}`}>{link.name}</span>
                               {active && (
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
                                   className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"
+                                />
+                              )}
+                              {isPricing && !active && (
+                                <motion.div
+                                  animate={{ scale: [1, 1.2, 1] }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                  className="w-2 h-2 bg-yellow-400 rounded-full flex-shrink-0"
                                 />
                               )}
                             </Link>
