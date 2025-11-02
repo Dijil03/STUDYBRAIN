@@ -156,9 +156,9 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
       <div className={`absolute inset-0 bg-gradient-to-r ${rarityGradient} rounded-3xl blur-2xl opacity-0 group-hover:opacity-60 transition-opacity duration-500`}></div>
 
       {/* Main Card */}
-      <div className={`relative p-8 rounded-3xl transition-all duration-300 overflow-hidden h-full flex flex-col ${
+      <div className={`relative p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl transition-all duration-300 overflow-hidden h-full flex flex-col ${
         earned
-          ? 'bg-white/95 backdrop-blur-xl border-4 border-white/50 shadow-2xl hover:shadow-4xl' // Glass-morphism earned card
+          ? 'bg-white/95 backdrop-blur-xl border-2 sm:border-4 border-white/50 shadow-2xl hover:shadow-4xl' // Glass-morphism earned card
           : 'bg-gray-50/70 backdrop-blur-md border border-gray-200 shadow-md hover:shadow-xl' // Softer locked card
       }`}>
         
@@ -180,13 +180,13 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
 
         <div className="relative z-10 flex-1 flex flex-col">
           {/* Badge Preview Button */}
-          <div className="absolute top-4 right-4 z-20">
+          <div className="absolute top-2 sm:top-3 lg:top-4 right-2 sm:right-3 lg:right-4 z-20">
             <button
               onClick={() => setShowPreview(!showPreview)}
-              className="p-2 bg-white/40 backdrop-blur-sm rounded-full hover:bg-white/60 transition-all duration-200 shadow-lg text-gray-700 hover:text-gray-900"
+              className="p-1.5 sm:p-2 bg-white/40 backdrop-blur-sm rounded-full hover:bg-white/60 transition-all duration-200 shadow-lg text-gray-700 hover:text-gray-900"
               title="Preview Badge"
             >
-              <EyeIcon className="w-4 h-4" />
+              <EyeIcon className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
 
@@ -202,9 +202,9 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
               >
                 <motion.div
                   initial={{ scale: 0.5, rotate: -90 }}
-                  animate={{ scale: 1.5, rotate: 0 }} // Much larger preview
+                  animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
-                  className={`w-32 h-32 flex items-center justify-center ${badgeShape} ${
+                  className={`w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center ${badgeShape} ${
                     earned
                       ? `bg-gradient-to-br ${rarityGradient} text-white ${shadowEffect} p-2`
                       : 'bg-gray-400 text-gray-700 p-2'
@@ -215,9 +215,9 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
                   onClick={(e) => e.stopPropagation()} 
                 >
                   {earned ? (
-                    renderIcon("w-20 h-20") // Larger icon in preview
+                    renderIcon("w-16 h-16 sm:w-20 sm:h-20") // Larger icon in preview
                   ) : (
-                    <Lock className="w-12 h-12" />
+                    <Lock className="w-10 h-10 sm:w-12 sm:h-12" />
                   )}
                 </motion.div>
               </motion.div>
@@ -225,7 +225,7 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
           </AnimatePresence>
 
           {/* Icon Section with Dynamic Shape and Shadow */}
-          <div className="flex justify-center mb-6 mt-4">
+          <div className="flex justify-center mb-4 sm:mb-6 mt-2 sm:mt-4">
             <motion.div
               animate={{
                 rotate: isHovered && earned ? [0, 5, -5, 0] : 0, // Quick subtle rotation on hover for earned
@@ -242,9 +242,9 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
               }}
             >
               {earned ? (
-                renderIcon("w-8 h-8")
+                renderIcon("w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8")
               ) : (
-                <Lock className="w-6 h-6" />
+                <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
               )}
             </motion.div>
           </div>
@@ -254,7 +254,7 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className={`text-2xl font-black text-center mb-3 ${
+            className={`text-lg sm:text-xl lg:text-2xl font-black text-center mb-2 sm:mb-3 ${
               earned
                 ? `bg-gradient-to-r ${rarityGradient} bg-clip-text text-transparent`
                 : 'text-gray-800' // Darker text for better contrast on light card
@@ -268,7 +268,7 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-gray-600 text-center mb-6 leading-relaxed min-h-[48px] flex-1"
+            className="text-gray-600 text-center mb-4 sm:mb-6 leading-relaxed min-h-[40px] sm:min-h-[48px] flex-1 text-sm sm:text-base"
           >
             {badge.description}
           </motion.p>
@@ -279,20 +279,20 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               transition={{ delay: 0.4 }}
-              className="mb-6"
+              className="mb-4 sm:mb-6"
             >
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-500">Progress</span>
-                <span className="text-sm font-bold text-gray-800">
+              <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+                <span className="text-xs sm:text-sm font-medium text-gray-500">Progress</span>
+                <span className="text-xs sm:text-sm font-bold text-gray-800">
                   {progress < badge.threshold ? `${progress} / ${badge.threshold}` : "Complete!"}
                 </span>
               </div>
-              <div className="w-full bg-gray-300 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-gray-300 rounded-full h-2 sm:h-3 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
                   transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                  className="bg-gradient-to-r from-teal-400 to-green-500 h-3 rounded-full" // High-contrast progress bar
+                  className="bg-gradient-to-r from-teal-400 to-green-500 h-2 sm:h-3 rounded-full" // High-contrast progress bar
                   style={{
                       boxShadow: '0 0 5px rgba(52, 211, 153, 0.7)' // Subtle green glow on progress
                   }}
@@ -306,9 +306,9 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
-            className="flex justify-center mb-3"
+            className="flex justify-center mb-2 sm:mb-3"
           >
-            <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-extrabold tracking-widest uppercase ${
+            <div className={`inline-flex items-center px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-extrabold tracking-wider sm:tracking-widest uppercase ${
               `bg-gradient-to-r ${rarityGradient} text-white shadow-md` // Rarity gradient background
             }`}>
               {badge.rarity?.toUpperCase() || 'COMMON'}
@@ -323,13 +323,13 @@ const BadgeCard = ({ badge, earned, progress = 0, index }) => {
             className="flex justify-center mt-auto"
           >
             {earned ? (
-              <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-100 to-lime-100 text-green-700 rounded-full font-bold shadow-xl border border-green-300">
-                <CheckCircle className="w-4 h-4 mr-2" />
+              <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-emerald-100 to-lime-100 text-green-700 rounded-full font-bold shadow-xl border border-green-300 text-xs sm:text-sm">
+                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Earned
               </div>
             ) : (
-              <div className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-500 rounded-full font-medium shadow-sm">
-                <Lock className="w-4 h-4 mr-2" />
+              <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 text-gray-500 rounded-full font-medium shadow-sm text-xs sm:text-sm">
+                <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Locked
               </div>
             )}
@@ -537,31 +537,37 @@ const Badges = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-zinc-900 to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-white text-xl">Loading badges...</p>
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-zinc-900 to-gray-900 flex items-center justify-center px-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 sm:h-24 sm:w-24 lg:h-32 lg:w-32 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-white text-base sm:text-lg lg:text-xl">Loading badges...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-zinc-900 to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-400 text-6xl mb-4">⚠️</div>
-          <h3 className="text-2xl font-bold text-white mb-3">Error Loading Badges</h3>
-          <p className="text-gray-400 mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
-          >
-            Try Again
-          </button>
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-zinc-900 to-gray-900 flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <div className="text-red-400 text-4xl sm:text-5xl lg:text-6xl mb-4">⚠️</div>
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">Error Loading Badges</h3>
+            <p className="text-gray-400 mb-6 text-sm sm:text-base">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -570,14 +576,14 @@ const Badges = () => {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-zinc-900 to-gray-900 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-purple-400 text-6xl mb-4">🏆</div>
-            <h3 className="text-2xl font-bold text-white mb-3">No Badges Available</h3>
-            <p className="text-gray-400 mb-6">Badge system is not set up yet. Please contact your administrator.</p>
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-zinc-900 to-gray-900 flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <div className="text-purple-400 text-4xl sm:text-5xl lg:text-6xl mb-4">🏆</div>
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">No Badges Available</h3>
+            <p className="text-gray-400 mb-6 text-sm sm:text-base">Badge system is not set up yet. Please contact your administrator.</p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base"
             >
               Refresh
             </button>
@@ -612,51 +618,51 @@ const Badges = () => {
           ></motion.div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-16">
+        <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-8 sm:py-12 lg:py-16">
           
           {/* Stunning Header - Enhanced Glass-Morphism */}
           <motion.div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="bg-white/5 backdrop-blur-xl rounded-3xl p-10 border border-white/20 shadow-4xl mb-12"
+            className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10 border border-white/20 shadow-4xl mb-6 sm:mb-8 lg:mb-12"
           >
-            <div className="flex flex-col lg:flex-row items-center justify-between">
-              <div className="flex items-center space-x-6 mb-8 lg:mb-0">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-red-500 rounded-2xl blur-lg opacity-80"></div>
-                  <div className="relative bg-gradient-to-r from-yellow-400 to-red-500 p-5 rounded-2xl shadow-xl">
-                    <Trophy className="w-10 h-10 text-white" />
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0">
+              <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-6 mb-4 sm:mb-6 lg:mb-0 w-full lg:w-auto">
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-red-500 rounded-xl sm:rounded-2xl blur-lg opacity-80"></div>
+                  <div className="relative bg-gradient-to-r from-yellow-400 to-red-500 p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl shadow-xl">
+                    <Trophy className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-white" />
                   </div>
                 </div>
-                <div>
-                  <h1 className="text-6xl font-extrabold text-white mb-2 tracking-tighter bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-1 sm:mb-2 tracking-tighter bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent truncate sm:whitespace-normal">
                     Achievement Hall
                   </h1>
-                  <p className="text-yellow-100/80 text-lg font-medium">
+                  <p className="text-yellow-100/80 text-sm sm:text-base lg:text-lg font-medium hidden sm:block">
                     Showcasing your dedication and mastery.
                   </p>
                 </div>
               </div>
               
               {/* Stats Display */}
-              <div className="flex items-center space-x-8">
-                <div className="text-center bg-white/5 p-6 rounded-xl border border-white/10 shadow-lg min-w-[120px]">
-                  <div className="text-5xl font-extrabold text-white mb-3">{earnedCount}</div>
-                  <div className="text-white/70 text-sm">Badges Earned</div>
+              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 lg:gap-6 lg:space-x-0 w-full lg:w-auto">
+                <div className="text-center bg-white/5 p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border border-white/10 shadow-lg min-w-[90px] sm:min-w-[100px] lg:min-w-[120px] flex-1 sm:flex-none">
+                  <div className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-white mb-1 sm:mb-2 lg:mb-3">{earnedCount}</div>
+                  <div className="text-white/70 text-xs sm:text-sm">Badges Earned</div>
                 </div>
-                <div className="text-center bg-white/5 p-6 rounded-xl border border-white/10 shadow-lg min-w-[120px]">
-                  <div className="text-5xl font-extrabold text-green-400 mb-3">{totalCompleted}</div>
-                  <div className="text-white/70 text-sm">Tasks Completed</div>
+                <div className="text-center bg-white/5 p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border border-white/10 shadow-lg min-w-[90px] sm:min-w-[100px] lg:min-w-[120px] flex-1 sm:flex-none">
+                  <div className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-green-400 mb-1 sm:mb-2 lg:mb-3">{totalCompleted}</div>
+                  <div className="text-white/70 text-xs sm:text-sm">Tasks Completed</div>
                 </div>
-                <div className="text-center bg-white/5 p-6 rounded-xl border border-white/10 shadow-lg hidden sm:block min-w-[120px]">
-                  <div className="text-5xl font-extrabold text-blue-400 mb-3">{totalCount}</div>
-                  <div className="text-white/70 text-sm">Total Badges</div>
+                <div className="text-center bg-white/5 p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border border-white/10 shadow-lg min-w-[90px] sm:min-w-[100px] lg:min-w-[120px] hidden sm:block flex-1 sm:flex-none">
+                  <div className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-blue-400 mb-1 sm:mb-2 lg:mb-3">{totalCount}</div>
+                  <div className="text-white/70 text-xs sm:text-sm">Total Badges</div>
                 </div>
                 <button
                   onClick={refreshBadges}
                   disabled={loading}
-                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto"
                 >
                   <Trophy className="w-4 h-4" />
                   <span>Refresh</span>
@@ -670,23 +676,25 @@ const Badges = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.8 }}
-                className="flex justify-end mb-8 space-x-4"
+                className="flex justify-center sm:justify-end mb-6 sm:mb-8"
             >
-                <div className="bg-white/10 backdrop-blur-sm rounded-full p-2 flex items-center border border-white/10 shadow-lg">
-                    <Filter className="w-5 h-5 text-white/70 mr-3 ml-2" />
-                    {['all', 'earned', 'locked'].map(f => (
-                        <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-4 py-1 rounded-full text-sm font-semibold transition-all duration-300 capitalize ${
-                                filter === f
-                                    ? 'bg-purple-600 text-white shadow-xl'
-                                    : 'text-white/60 hover:text-white/90'
-                            }`}
-                        >
-                            {f}
-                        </button>
-                    ))}
+                <div className="bg-white/10 backdrop-blur-sm rounded-full p-1.5 sm:p-2 flex items-center border border-white/10 shadow-lg w-full sm:w-auto">
+                    <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 mr-2 sm:mr-3 ml-1 sm:ml-2 flex-shrink-0" />
+                    <div className="flex flex-1 sm:flex-none gap-1 sm:gap-0">
+                      {['all', 'earned', 'locked'].map(f => (
+                          <button
+                              key={f}
+                              onClick={() => setFilter(f)}
+                              className={`px-3 sm:px-4 py-1.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 capitalize flex-1 sm:flex-none ${
+                                  filter === f
+                                      ? 'bg-purple-600 text-white shadow-xl'
+                                      : 'text-white/60 hover:text-white/90'
+                              }`}
+                          >
+                              {f}
+                          </button>
+                      ))}
+                    </div>
                 </div>
             </motion.div>
 
@@ -696,7 +704,7 @@ const Badges = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 items-stretch"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-stretch"
           >
             <AnimatePresence>
               {sortedCatalog.length > 0 ? (
@@ -713,13 +721,13 @@ const Badges = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="col-span-full text-center py-16 bg-white/5 rounded-2xl border border-white/10"
+                  className="col-span-full text-center py-8 sm:py-12 lg:py-16 bg-white/5 rounded-2xl border border-white/10 px-4"
                 >
-                  <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Trophy className="w-10 h-10 text-white" />
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <Trophy className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-4">No Badges Found</h3>
-                  <p className="text-white/60 text-lg">
+                  <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">No Badges Found</h3>
+                  <p className="text-white/60 text-sm sm:text-base lg:text-lg px-4">
                     {filter === 'earned' ? "You haven't earned any badges yet!" : filter === 'locked' ? "All badges have been earned!" : "No badges are available in the catalog."}
                   </p>
                 </motion.div>
