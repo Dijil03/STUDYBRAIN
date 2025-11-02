@@ -63,14 +63,52 @@ const Assessments = () => {
   const fetchUserProfile = async () => {
     try {
       setUserLoading(true);
-      const response = await api.get('/auth/profile');
-      if (response.status === 200) {
-        setUser(response.data.user);
-        fetchAssessments(response.data.user.id);
+      
+      // First, try to get userId from localStorage (faster, works even if API is down)
+      let userId = localStorage.getItem('userId');
+      
+      // Then try to get user data from API session
+      try {
+        const response = await api.get('/auth/google/success');
+        if (response.status === 200 && response.data.user) {
+          const userData = response.data.user;
+          userId = userData.id || userId;
+          setUser(userData);
+          
+          // Store in localStorage for future use
+          if (userData.id) {
+            localStorage.setItem('userId', userData.id);
+          }
+          if (userData.username) {
+            localStorage.setItem('username', userData.username);
+          }
+        }
+      } catch (apiError) {
+        console.warn('API auth check failed, using localStorage:', apiError.message);
+        
+        // If we have userId from localStorage, create a minimal user object
+        if (userId) {
+          setUser({ id: userId, username: localStorage.getItem('username') || 'User' });
+        }
+      }
+      
+      // Fetch assessments if we have a userId
+      if (userId) {
+        fetchAssessments(userId);
+      } else {
+        console.warn('No userId available, cannot fetch assessments');
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       setLoading(false);
+      
+      // Try to use localStorage as fallback
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        setUser({ id: userId, username: localStorage.getItem('username') || 'User' });
+        fetchAssessments(userId);
+      }
     } finally {
       setUserLoading(false);
     }
@@ -90,13 +128,16 @@ const Assessments = () => {
   };
 
   const createAssessment = async (assessmentData) => {
-    if (!user || !user.id) {
+    // Get userId - try user object first, then localStorage
+    let userId = user?.id || localStorage.getItem('userId');
+    
+    if (!userId) {
       toast.error('User not loaded. Please wait and try again.');
       return;
     }
     
     try {
-      const response = await api.post(`/assessments/${user.id}`, assessmentData);
+      const response = await api.post(`/assessments/${userId}`, assessmentData);
       setAssessments(prev => [response.data, ...prev]);
       setShowCreateModal(false);
       toast.success('Assessment created successfully!');
@@ -439,13 +480,14 @@ const Assessments = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
-                if (!user) {
-                  toast.error('Please wait for user to load');
+                const userId = user?.id || localStorage.getItem('userId');
+                if (!userId) {
+                  toast.error('Please wait for user to load or refresh the page');
                   return;
                 }
                 setShowCreateModal(true);
               }}
-              disabled={!user}
+              disabled={!user && !localStorage.getItem('userId') && userLoading}
               className="flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -577,13 +619,14 @@ const Assessments = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  if (!user) {
-                    toast.error('Please wait for user to load');
+                  const userId = user?.id || localStorage.getItem('userId');
+                  if (!userId) {
+                    toast.error('Please wait for user to load or refresh the page');
                     return;
                   }
                   setShowCreateModal(true);
                 }}
-                disabled={!user}
+                disabled={!user && !localStorage.getItem('userId') && userLoading}
                 className="flex items-center mx-auto px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-5 h-5 mr-2" />
