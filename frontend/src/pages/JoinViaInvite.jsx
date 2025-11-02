@@ -38,13 +38,23 @@ const JoinViaInvite = () => {
   }, []);
 
   useEffect(() => {
+    if (!inviteToken) {
+      setError('No invite token provided');
+      setLoading(false);
+      return;
+    }
+    
     if (user && inviteToken) {
       checkInviteToken();
+    } else if (user === null && !loading) {
+      // User fetch failed or is still loading
+      // Loading state is handled in fetchUserProfile
     }
   }, [user, inviteToken]);
 
   const fetchUserProfile = async () => {
     try {
+      setLoading(true);
       const storedUserId = localStorage.getItem('userId');
       const storedUsername = localStorage.getItem('username');
       
@@ -53,6 +63,7 @@ const JoinViaInvite = () => {
           id: storedUserId, 
           username: storedUsername || 'User' 
         });
+        setLoading(false);
         return;
       }
       
@@ -63,6 +74,7 @@ const JoinViaInvite = () => {
           setUser(userData);
           localStorage.setItem('userId', userData.id);
           localStorage.setItem('username', userData.username || userData.firstName || 'User');
+          setLoading(false);
         }
       } catch (authError) {
         // User not authenticated - redirect to login with return URL
@@ -82,47 +94,83 @@ const JoinViaInvite = () => {
         const returnUrl = encodeURIComponent(window.location.pathname);
         window.location.href = `/login?redirect=${returnUrl}`;
       }
+      setLoading(false);
     }
   };
 
   const checkInviteToken = async () => {
+    if (!user || !inviteToken) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      // First, try to get group info via the invite token
-      // We'll need to make a request to see if the token is valid
-      // For now, let's make a simple request to check the token
+      setError(null);
       
-      const response = await api.post(`/study-groups/join/${inviteToken}`, {
-        userId: user.id,
-        userName: user.username,
-        preview: true // Just to check if valid, don't actually join yet
-      });
-
-      if (response.data.success) {
-        if (response.data.message.includes('already a member')) {
-          setJoined(true);
-          setGroup(response.data.group);
-        } else {
-          // Token is valid, but we need to get full group details
-          // Let's fetch group details if we have the group ID
-          if (response.data.group && response.data.group._id) {
-            const groupResponse = await api.get(`/study-groups/${response.data.group._id}?userId=${user.id}`);
-            if (groupResponse.data.success) {
-              setGroup(groupResponse.data.group);
+      // Try to get invite link info first (preview mode)
+      try {
+        const inviteResponse = await api.get(`/study-groups/invite-link/${inviteToken}?userId=${user.id}`);
+        
+        if (inviteResponse.data.success && inviteResponse.data.group) {
+          // Check if user is already a member
+          const group = inviteResponse.data.group;
+          const isMember = group.members?.some(member => 
+            member.userId === user.id || member._id === user.id || 
+            (typeof member === 'string' && member === user.id)
+          );
+          
+          if (isMember) {
+            setJoined(true);
+          }
+          
+          // Fetch full group details
+          if (group._id) {
+            try {
+              const groupResponse = await api.get(`/study-groups/${group._id}?userId=${user.id}`);
+              if (groupResponse.data.success && groupResponse.data.group) {
+                setGroup(groupResponse.data.group);
+                // Double check membership status from full group data
+                const fullGroup = groupResponse.data.group;
+                const isFullMember = fullGroup.members?.some(member => 
+                  member.userId === user.id || member._id === user.id ||
+                  (typeof member === 'string' && member === user.id)
+                );
+                if (isFullMember) {
+                  setJoined(true);
+                }
+              } else {
+                setGroup(group);
+              }
+            } catch (groupError) {
+              console.warn('Could not fetch full group details, using basic info:', groupError);
+              setGroup(group);
             }
           } else {
-            setGroup(response.data.group);
+            setGroup(group);
           }
+          return; // Successfully got group info
         }
+      } catch (inviteError) {
+        console.log('Invite preview endpoint not available, trying alternative method:', inviteError.message);
+        // Fall through to try getting group info via token validation
       }
+      
+      // Alternative: Try to get group info by validating token structure
+      // This requires backend support for token validation without joining
+      // For now, we'll show an error if we can't get the info
+      setError('Unable to load invite details. The invite link may be invalid or expired.');
+      
     } catch (error) {
       console.error('Error checking invite token:', error);
       if (error.response?.status === 404) {
         setError('Invalid or expired invite link');
       } else if (error.response?.status === 400) {
-        setError(error.response.data.error || 'Invite link has expired or is disabled');
+        setError(error.response.data?.error || error.response.data?.message || 'Invite link has expired or is disabled');
+      } else if (error.response?.status === 403) {
+        setError(error.response.data?.error || 'You do not have permission to join this group');
       } else {
-        setError('Failed to process invite link');
+        setError(error.response?.data?.error || error.response?.data?.message || 'Failed to process invite link. Please try again.');
       }
     } finally {
       setLoading(false);
