@@ -2,14 +2,29 @@ import User from '../models/auth.model.js';
 
 // Helper function to get valid access token
 const getValidAccessToken = async (user) => {
-    console.log('🔍 getValidAccessToken called with user:', user ? 'User found' : 'No user');
+    console.log('🔍 getValidAccessToken called with user:', user ? `User ID: ${user._id || user.id}` : 'No user');
 
     if (!user) {
         throw new Error('User not provided to getValidAccessToken');
     }
 
+    // Check if user has Google access token
+    if (!user.googleAccessToken) {
+        console.error('❌ User does not have googleAccessToken');
+        throw new Error('User not connected to Google. Please authorize Google Docs access.');
+    }
+
     // Check if token is expired and refresh if needed
-    if (user.googleTokenExpiry && new Date() > user.googleTokenExpiry) {
+    const isExpired = user.googleTokenExpiry && new Date() > new Date(user.googleTokenExpiry);
+    
+    if (isExpired) {
+        console.log('🔄 Token expired, attempting refresh...');
+        
+        if (!user.googleRefreshToken) {
+            console.error('❌ No refresh token available');
+            throw new Error('Google refresh token not found. Please re-authorize Google Docs access.');
+        }
+
         try {
             const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
                 method: 'POST',
@@ -24,25 +39,33 @@ const getValidAccessToken = async (user) => {
                 })
             });
 
-            if (refreshResponse.ok) {
-                const tokenData = await refreshResponse.json();
-
-                // Update user with new tokens
-                user.googleAccessToken = tokenData.access_token;
-                user.googleTokenExpiry = new Date(Date.now() + tokenData.expires_in * 1000);
-                await user.save();
-
-                console.log('✅ Google access token refreshed for user:', user.id || user._id);
-                return tokenData.access_token;
-            } else {
-                throw new Error('Failed to refresh token');
+            if (!refreshResponse.ok) {
+                const errorText = await refreshResponse.text();
+                console.error('❌ Token refresh failed:', refreshResponse.status, errorText);
+                throw new Error(`Failed to refresh token: ${refreshResponse.status}`);
             }
+
+            const tokenData = await refreshResponse.json();
+
+            if (!tokenData.access_token) {
+                console.error('❌ No access token in refresh response');
+                throw new Error('Token refresh response missing access_token');
+            }
+
+            // Update user with new tokens
+            user.googleAccessToken = tokenData.access_token;
+            user.googleTokenExpiry = new Date(Date.now() + (tokenData.expires_in || 3600) * 1000);
+            await user.save();
+
+            console.log('✅ Google access token refreshed for user:', user.id || user._id);
+            return tokenData.access_token;
         } catch (error) {
-            console.error('Error refreshing Google token:', error);
-            throw new Error('Token refresh failed');
+            console.error('❌ Error refreshing Google token:', error.message);
+            throw new Error(`Token refresh failed: ${error.message}`);
         }
     }
 
+    console.log('✅ Using existing access token');
     return user.googleAccessToken;
 };
 
@@ -203,40 +226,85 @@ export const googleDocsController = {
     async listDocuments(req, res) {
         try {
             const { userId } = req.params;
+            console.log('📋 listDocuments called for userId:', userId);
 
             // Find user
             const user = await User.findById(userId);
             if (!user) {
-                return res.status(404).json({ error: 'User not found' });
+                console.error('❌ User not found:', userId);
+                return res.status(404).json({ 
+                    success: false,
+                    error: 'User not found' 
+                });
             }
 
+            console.log('✅ User found:', user.email);
+
+            // Check if user has Google tokens
             if (!user.googleAccessToken) {
+                console.warn('⚠️ User does not have Google access token');
                 return res.status(400).json({
+                    success: false,
                     error: 'User not connected to Google',
-                    needsAuth: true
+                    needsAuth: true,
+                    authUrl: `/api/auth/google-docs?userId=${userId}`
                 });
             }
 
             // Get valid access token
-            const accessToken = await getValidAccessToken(user);
+            let accessToken;
+            try {
+                accessToken = await getValidAccessToken(user);
+            } catch (tokenError) {
+                console.error('❌ getValidAccessToken failed:', tokenError.message);
+                return res.status(401).json({
+                    success: false,
+                    error: tokenError.message || 'Failed to get access token',
+                    needsAuth: true,
+                    authUrl: `/api/auth/google-docs?userId=${userId}`
+                });
+            }
 
             // Use Google Drive API to list documents
-            const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.document"&fields=files(id,name,createdTime,modifiedTime,webViewLink)', {
+            const driveApiUrl = 'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.document"&fields=files(id,name,createdTime,modifiedTime,webViewLink)';
+            console.log('📡 Calling Google Drive API...');
+            
+            const response = await fetch(driveApiUrl, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
                 }
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Google API error: ${errorData.error?.message || response.statusText}`);
+                const errorText = await response.text();
+                let errorData;
+                try {
+                    errorData = JSON.parse(errorText);
+                } catch {
+                    errorData = { message: errorText };
+                }
+                
+                console.error('❌ Google Drive API error:', response.status, errorData);
+                
+                if (response.status === 401 || response.status === 403) {
+                    return res.status(401).json({
+                        success: false,
+                        error: 'Google API authentication failed. Please re-authorize.',
+                        needsAuth: true,
+                        authUrl: `/api/auth/google-docs?userId=${userId}`,
+                        details: errorData.error?.message || errorData.message
+                    });
+                }
+                
+                throw new Error(`Google API error: ${errorData.error?.message || errorData.message || response.statusText}`);
             }
 
             const data = await response.json();
+            console.log('✅ Google Drive API response:', data.files?.length || 0, 'documents found');
 
             res.json({
                 success: true,
-                documents: data.files.map(file => ({
+                documents: (data.files || []).map(file => ({
                     id: file.id,
                     name: file.name,
                     webViewLink: file.webViewLink,
@@ -246,14 +314,24 @@ export const googleDocsController = {
             });
 
         } catch (error) {
-            console.error('Error listing Google documents:', error);
-            if (error.message === 'Token refresh failed') {
+            console.error('❌ Error listing Google documents:', error);
+            console.error('Error stack:', error.stack);
+            
+            // Return more descriptive error messages
+            if (error.message.includes('Token refresh failed') || error.message.includes('not connected')) {
                 return res.status(401).json({
-                    error: 'Google token expired and refresh failed',
-                    needsAuth: true
+                    success: false,
+                    error: error.message || 'Google authentication failed',
+                    needsAuth: true,
+                    authUrl: `/api/auth/google-docs?userId=${req.params.userId}`
                 });
             }
-            res.status(500).json({ error: 'Failed to list documents' });
+            
+            res.status(500).json({ 
+                success: false,
+                error: error.message || 'Failed to list documents',
+                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
         }
     },
 
