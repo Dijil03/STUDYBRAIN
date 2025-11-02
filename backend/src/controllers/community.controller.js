@@ -1,4 +1,9 @@
 import User from '../models/auth.model.js';
+import Homework from '../models/homework.model.js';
+import { UserBadge, Badge } from '../models/badge.model.js';
+import StudySession from '../models/studysession.model.js';
+import Assessment from '../models/assessment.model.js';
+import Streak from '../models/streak.model.js';
 
 // Get community rankings
 export const getCommunityRankings = async (req, res) => {
@@ -72,37 +77,85 @@ export const getCommunityRankings = async (req, res) => {
 // Calculate user's total score
 const calculateUserScore = async (userId) => {
   try {
-    // This would integrate with your existing homework, study time, and badge systems
-    // For now, we'll create a mock calculation based on user data
-    
     const user = await User.findById(userId);
     if (!user) return 0;
     
     let score = 0;
+    const userIdString = userId.toString();
     
-    // Base score for account age (1 point per day)
+    // Base score for account age (1 point per day, max 365 points)
     const accountAge = Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
-    score += accountAge;
+    score += Math.min(accountAge, 365);
     
-    // Score for subscription level
+    // Score from completed homework (10 points per completed homework)
+    const completedHomework = await Homework.countDocuments({ 
+      userId: userIdString, 
+      completed: true 
+    });
+    score += completedHomework * 10;
+    
+    // Score from study time (1 point per hour, max 500 points)
+    const studySessions = await StudySession.find({ userId: userIdString });
+    const totalStudyMinutes = studySessions.reduce((sum, session) => sum + (session.duration || 0), 0);
+    const totalStudyHours = Math.floor(totalStudyMinutes / 60);
+    score += Math.min(totalStudyHours, 500);
+    
+    // Score from badges earned (badge points value)
+    const userBadges = await UserBadge.find({ 
+      userId: userIdString, 
+      isEarned: true 
+    });
+    
+    // Get badge IDs and fetch their point values
+    const badgeIds = userBadges.map(ub => ub.badgeId);
+    const badges = await Badge.find({ id: { $in: badgeIds } });
+    const badgeMap = new Map(badges.map(b => [b.id, b.points || 10]));
+    
+    const badgeScore = userBadges.reduce((sum, ub) => {
+      const badgePoints = badgeMap.get(ub.badgeId) || 10;
+      return sum + badgePoints;
+    }, 0);
+    score += badgeScore;
+    
+    // Score from assessments (5 points per completed assessment, bonus for high scores)
+    const assessments = await Assessment.find({ userId: userIdString });
+    const assessmentScore = assessments.reduce((sum, assessment) => {
+      if (assessment.submissions && assessment.submissions.length > 0) {
+        // Base score for completing assessment
+        let assessScore = 5;
+        // Bonus for high scores (average score above 80%)
+        const latestSubmission = assessment.submissions[assessment.submissions.length - 1];
+        const avgScore = assessment.questions.length > 0 
+          ? (latestSubmission.score / assessment.questions.length) * 100 
+          : 0;
+        if (avgScore >= 80) assessScore += 5; // Bonus for good scores
+        return sum + assessScore;
+      }
+      return sum;
+    }, 0);
+    score += assessmentScore;
+    
+    // Score for subscription level (multiplier)
     if (user.subscription) {
       const subscriptionMultiplier = {
         'free': 1,
         'premium': 1.5,
         'enterprise': 2
       };
-      score *= (subscriptionMultiplier[user.subscription.plan] || 1);
+      score = Math.floor(score * (subscriptionMultiplier[user.subscription.plan] || 1));
     }
     
-    // Mock data for demonstration - in real implementation, this would come from:
-    // - Homework completion records
-    // - Study time logs
-    // - Badge achievements
-    // - Assessment scores
-    
-    // Random score for demonstration (replace with real calculations)
-    const mockScore = Math.floor(Math.random() * 5000) + 100;
-    score += mockScore;
+    // Score from streak (1 point per day of current streak, max 100 points)
+    // Try both ObjectId and string formats for userId
+    const streak = await Streak.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: userIdString }
+      ]
+    });
+    if (streak && streak.currentStreak) {
+      score += Math.min(streak.currentStreak, 100);
+    }
     
     return Math.floor(score);
   } catch (error) {
@@ -114,14 +167,70 @@ const calculateUserScore = async (userId) => {
 // Get user's progress data
 const getUserProgressData = async (userId) => {
   try {
-    // Mock data for demonstration - replace with real database queries
+    const userIdString = userId.toString();
+    
+    // Get completed homework count
+    const homeworkCompleted = await Homework.countDocuments({ 
+      userId: userIdString, 
+      completed: true 
+    });
+    
+    // Get badges earned count
+    const badgesEarned = await UserBadge.countDocuments({ 
+      userId: userIdString, 
+      isEarned: true 
+    });
+    
+    // Get total study time in hours
+    const studySessions = await StudySession.find({ userId: userIdString });
+    const totalStudyMinutes = studySessions.reduce((sum, session) => sum + (session.duration || 0), 0);
+    const studyTime = Math.floor(totalStudyMinutes / 60); // Convert to hours
+    
+    // Get completed assessments count (assessments with at least one submission)
+    const assessments = await Assessment.find({ userId: userIdString });
+    const assessmentsCompleted = assessments.filter(assessment => 
+      assessment.submissions && assessment.submissions.length > 0
+    ).length;
+    
+    // Get current streak days
+    // Try both ObjectId and string formats for userId
+    const streak = await Streak.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: userIdString }
+      ]
+    });
+    const streakDays = streak ? streak.currentStreak || 0 : 0;
+    
+    // Get last active date (most recent activity from study sessions or homework completion)
+    const lastStudySession = await StudySession.findOne({ userId: userIdString })
+      .sort({ date: -1 })
+      .select('date');
+    
+    const lastCompletedHomework = await Homework.findOne({ 
+      userId: userIdString, 
+      completed: true 
+    })
+      .sort({ completedAt: -1 })
+      .select('completedAt');
+    
+    let lastActive = new Date();
+    if (lastStudySession && lastStudySession.date) {
+      lastActive = lastStudySession.date;
+    }
+    if (lastCompletedHomework && lastCompletedHomework.completedAt) {
+      if (lastCompletedHomework.completedAt > lastActive) {
+        lastActive = lastCompletedHomework.completedAt;
+      }
+    }
+    
     return {
-      homeworkCompleted: Math.floor(Math.random() * 50) + 1,
-      badgesEarned: Math.floor(Math.random() * 20) + 1,
-      studyTime: Math.floor(Math.random() * 200) + 10,
-      assessmentsCompleted: Math.floor(Math.random() * 10) + 1,
-      streakDays: Math.floor(Math.random() * 30) + 1,
-      lastActive: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
+      homeworkCompleted,
+      badgesEarned,
+      studyTime,
+      assessmentsCompleted,
+      streakDays,
+      lastActive
     };
   } catch (error) {
     console.error('Error getting user progress data:', error);
