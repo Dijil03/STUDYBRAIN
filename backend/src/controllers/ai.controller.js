@@ -19,7 +19,7 @@ const getClient = () => {
       // Temporarily set OPENAI_API_KEY to prevent library error
       process.env.OPENAI_API_KEY = hfToken;
       client = new OpenAI({
-        baseURL: "https://router.huggingface.co/v1",
+  baseURL: "https://router.huggingface.co/v1",
         apiKey: hfToken,
       });
     } finally {
@@ -136,7 +136,7 @@ export const sendMessage = async (req, res) => {
 
     // Check if client is available
     const aiClient = getClient();
-    
+
     // Create streaming completion
     const stream = await aiClient.chat.completions.create({
       model,
@@ -197,13 +197,13 @@ export const sendMessage = async (req, res) => {
         helpUrl: 'https://huggingface.co/settings/tokens'
       })}\n\n`);
     } else {
-      // Send error in streaming format
-      res.write(`data: ${JSON.stringify({
-        type: 'error',
-        content: 'Sorry, I encountered an error. Please try again.',
-        isComplete: true,
-        error: error.message
-      })}\n\n`);
+    // Send error in streaming format
+    res.write(`data: ${JSON.stringify({
+      type: 'error',
+      content: 'Sorry, I encountered an error. Please try again.',
+      isComplete: true,
+      error: error.message
+    })}\n\n`);
     }
 
     res.end();
@@ -439,7 +439,7 @@ Generate ${numQuestions} well-crafted questions now:`;
 
     // Check if client is available
     const aiClient = getClient();
-    
+
     // Call AI to generate assessment
     const completion = await aiClient.chat.completions.create({
       model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',

@@ -540,7 +540,7 @@ const Badges = () => {
       <>
         <Navbar />
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-zinc-900 to-gray-900 flex items-center justify-center px-4">
-          <div className="text-center">
+        <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 sm:h-24 sm:w-24 lg:h-32 lg:w-32 border-b-2 border-purple-500 mx-auto mb-4"></div>
             <p className="text-white text-base sm:text-lg lg:text-xl">Loading badges...</p>
           </div>
@@ -559,14 +559,14 @@ const Badges = () => {
             <div className="text-red-400 text-4xl sm:text-5xl lg:text-6xl mb-4">⚠️</div>
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">Error Loading Badges</h3>
             <p className="text-gray-400 mb-6 text-sm sm:text-base">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
+          <button
+            onClick={() => window.location.reload()}
               className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base"
-            >
-              Try Again
-            </button>
-          </div>
+          >
+            Try Again
+          </button>
         </div>
+      </div>
       </>
     );
   }
@@ -681,19 +681,19 @@ const Badges = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-full p-1.5 sm:p-2 flex items-center border border-white/10 shadow-lg w-full sm:w-auto">
                     <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 mr-2 sm:mr-3 ml-1 sm:ml-2 flex-shrink-0" />
                     <div className="flex flex-1 sm:flex-none gap-1 sm:gap-0">
-                      {['all', 'earned', 'locked'].map(f => (
-                          <button
-                              key={f}
-                              onClick={() => setFilter(f)}
+                    {['all', 'earned', 'locked'].map(f => (
+                        <button
+                            key={f}
+                            onClick={() => setFilter(f)}
                               className={`px-3 sm:px-4 py-1.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 capitalize flex-1 sm:flex-none ${
-                                  filter === f
-                                      ? 'bg-purple-600 text-white shadow-xl'
-                                      : 'text-white/60 hover:text-white/90'
-                              }`}
-                          >
-                              {f}
-                          </button>
-                      ))}
+                                filter === f
+                                    ? 'bg-purple-600 text-white shadow-xl'
+                                    : 'text-white/60 hover:text-white/90'
+                            }`}
+                        >
+                            {f}
+                        </button>
+                    ))}
                     </div>
                 </div>
             </motion.div>

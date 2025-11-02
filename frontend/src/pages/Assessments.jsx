@@ -55,6 +55,9 @@ const Assessments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [showAIGeneratorModal, setShowAIGeneratorModal] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiGeneratedData, setAiGeneratedData] = useState(null);
 
   useEffect(() => {
     fetchUserProfile();
@@ -144,6 +147,41 @@ const Assessments = () => {
     } catch (error) {
       console.error('Error creating assessment:', error);
       toast.error('Failed to create assessment');
+    }
+  };
+
+  const generateAIAssessment = async (aiParams) => {
+    try {
+      setAiGenerating(true);
+      const response = await api.post('/ai/generate-assessment', aiParams);
+      
+      if (response.data.success && response.data.data) {
+        const aiAssessment = response.data.data;
+        
+        // Store AI-generated data to pass to the create modal
+        setAiGeneratedData({
+          title: aiAssessment.title,
+          description: aiAssessment.description,
+          questions: aiAssessment.questions
+        });
+        
+        // Close AI modal and open create modal
+        setShowAIGeneratorModal(false);
+        setShowCreateModal(true);
+        
+        toast.success(`AI generated ${aiAssessment.questions.length} questions! Review and create the assessment.`);
+      } else {
+        throw new Error('Invalid response from AI service');
+      }
+    } catch (error) {
+      console.error('Error generating AI assessment:', error);
+      if (error.response?.status === 503) {
+        toast.error('AI service is not available. Please use manual creation.');
+      } else {
+        toast.error('Failed to generate assessment with AI. Please try again.');
+      }
+    } finally {
+      setAiGenerating(false);
     }
   };
 
@@ -476,23 +514,42 @@ const Assessments = () => {
               </h1>
               <p className="text-purple-200 text-lg">Test your knowledge and track your progress</p>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                const userId = user?.id || localStorage.getItem('userId');
-                if (!userId) {
-                  toast.error('Please wait for user to load or refresh the page');
-                  return;
-                }
-                setShowCreateModal(true);
-              }}
-              disabled={!user && !localStorage.getItem('userId') && userLoading}
-              className="flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Create Assessment
-            </motion.button>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  const userId = user?.id || localStorage.getItem('userId');
+                  if (!userId) {
+                    toast.error('Please wait for user to load or refresh the page');
+                    return;
+                  }
+                  setShowAIGeneratorModal(true);
+                }}
+                disabled={(!user && !localStorage.getItem('userId') && userLoading) || aiGenerating}
+                className="flex items-center justify-center px-5 sm:px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="text-sm sm:text-base">AI Generate</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  const userId = user?.id || localStorage.getItem('userId');
+                  if (!userId) {
+                    toast.error('Please wait for user to load or refresh the page');
+                    return;
+                  }
+                  setShowCreateModal(true);
+                }}
+                disabled={!user && !localStorage.getItem('userId') && userLoading}
+                className="flex items-center justify-center px-5 sm:px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="text-sm sm:text-base">Create Manual</span>
+              </motion.button>
+            </div>
           </motion.div>
 
           {/* Filters and Search */}
@@ -615,23 +672,42 @@ const Assessments = () => {
               <p className="text-purple-200 mb-8 max-w-md mx-auto">
                 Create your first assessment to start testing your knowledge and tracking your progress.
               </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  const userId = user?.id || localStorage.getItem('userId');
-                  if (!userId) {
-                    toast.error('Please wait for user to load or refresh the page');
-                    return;
-                  }
-                  setShowCreateModal(true);
-                }}
-                disabled={!user && !localStorage.getItem('userId') && userLoading}
-                className="flex items-center mx-auto px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Create Your First Assessment
-              </motion.button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    const userId = user?.id || localStorage.getItem('userId');
+                    if (!userId) {
+                      toast.error('Please wait for user to load or refresh the page');
+                      return;
+                    }
+                    setShowAIGeneratorModal(true);
+                  }}
+                  disabled={(!user && !localStorage.getItem('userId') && userLoading) || aiGenerating}
+                  className="flex items-center justify-center mx-auto px-5 sm:px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="text-sm sm:text-base">Generate with AI</span>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    const userId = user?.id || localStorage.getItem('userId');
+                    if (!userId) {
+                      toast.error('Please wait for user to load or refresh the page');
+                      return;
+                    }
+                    setShowCreateModal(true);
+                  }}
+                  disabled={!user && !localStorage.getItem('userId') && userLoading}
+                  className="flex items-center justify-center mx-auto px-5 sm:px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="text-sm sm:text-base">Create Manually</span>
+                </motion.button>
+              </div>
             </motion.div>
           )}
         </div>
@@ -640,8 +716,23 @@ const Assessments = () => {
         <AnimatePresence>
           {showCreateModal && (
             <CreateAssessmentModal
-              onClose={() => setShowCreateModal(false)}
+              onClose={() => {
+                setShowCreateModal(false);
+                setAiGeneratedData(null); // Clear AI data when closing
+              }}
               onCreate={createAssessment}
+              initialData={aiGeneratedData}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* AI Generator Modal */}
+        <AnimatePresence>
+          {showAIGeneratorModal && (
+            <AIGeneratorModal
+              onClose={() => setShowAIGeneratorModal(false)}
+              onGenerate={generateAIAssessment}
+              generating={aiGenerating}
             />
           )}
         </AnimatePresence>
@@ -650,12 +741,166 @@ const Assessments = () => {
   );
 };
 
+// AI Generator Modal Component
+const AIGeneratorModal = ({ onClose, onGenerate, generating }) => {
+  const [aiParams, setAiParams] = useState({
+    chapter: '',
+    subject: '',
+    difficulty: 'medium',
+    numQuestions: 5,
+    additionalContext: ''
+  });
+
+  const handleGenerate = (e) => {
+    e.preventDefault();
+    if (!aiParams.chapter.trim() || !aiParams.subject.trim()) {
+      toast.error('Please enter chapter and subject');
+      return;
+    }
+    onGenerate(aiParams);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl max-w-2xl w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">AI Assessment Generator</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleGenerate} className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">Subject *</label>
+              <input
+                type="text"
+                value={aiParams.subject}
+                onChange={(e) => setAiParams(prev => ({ ...prev, subject: e.target.value }))}
+                className="w-full px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+                placeholder="e.g., Mathematics, Science"
+                required
+                disabled={generating}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">Chapter/Topic *</label>
+              <input
+                type="text"
+                value={aiParams.chapter}
+                onChange={(e) => setAiParams(prev => ({ ...prev, chapter: e.target.value }))}
+                className="w-full px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+                placeholder="e.g., Algebra, Photosynthesis"
+                required
+                disabled={generating}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">Difficulty</label>
+              <select
+                value={aiParams.difficulty}
+                onChange={(e) => setAiParams(prev => ({ ...prev, difficulty: e.target.value }))}
+                className="w-full px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+                disabled={generating}
+              >
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">Number of Questions</label>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={aiParams.numQuestions}
+                onChange={(e) => setAiParams(prev => ({ ...prev, numQuestions: parseInt(e.target.value) || 5 }))}
+                className="w-full px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+                disabled={generating}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-white mb-2">Additional Context (Optional)</label>
+            <textarea
+              value={aiParams.additionalContext}
+              onChange={(e) => setAiParams(prev => ({ ...prev, additionalContext: e.target.value }))}
+              className="w-full px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+              placeholder="Any specific topics or requirements..."
+              rows={3}
+              disabled={generating}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-white/10">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 sm:px-6 py-2.5 sm:py-3 text-white/60 hover:text-white transition-colors text-sm sm:text-base"
+              disabled={generating}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={generating || !aiParams.subject.trim() || !aiParams.chapter.trim()}
+              className="px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm sm:text-base"
+            >
+              {generating ? (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                  />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Generate Assessment</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 // Create Assessment Modal Component
-const CreateAssessmentModal = ({ onClose, onCreate }) => {
+const CreateAssessmentModal = ({ onClose, onCreate, initialData = null }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    questions: []
+    title: initialData?.title || '',
+    description: initialData?.description || '',
+    questions: initialData?.questions || []
   });
   const [currentQuestion, setCurrentQuestion] = useState({
     prompt: '',
@@ -663,6 +908,17 @@ const CreateAssessmentModal = ({ onClose, onCreate }) => {
     correctIndex: 0
   });
   const [showQuestionForm, setShowQuestionForm] = useState(false);
+
+  // Update formData when initialData changes (e.g., when AI generates content)
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        title: initialData.title || '',
+        description: initialData.description || '',
+        questions: initialData.questions || []
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

@@ -212,12 +212,11 @@ const FlashcardGenerator = () => {
                 </div>
               <textarea
                 id="notes"
-                  rows={6}
-                  style={{ minHeight: '150px' }}
-                  className="sm:min-h-[200px] md:min-h-[250px]"
+                rows={6}
+                style={{ minHeight: '150px' }}
+                className="w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base md:text-lg font-medium placeholder-white/60 focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all duration-300 backdrop-blur-sm resize-none sm:min-h-[200px] md:min-h-[250px]"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base md:text-lg font-medium placeholder-white/60 focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all duration-300 backdrop-blur-sm resize-none"
                   placeholder="Example:&#10;Invention of the Printing Press: Johannes Gutenberg&#10;Year the Berlin Wall fell: 1989&#10;Capital of France: Paris"
                 />
                 <motion.div 

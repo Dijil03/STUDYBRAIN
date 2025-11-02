@@ -106,11 +106,11 @@ const Community = () => {
         <Navbar />
         <div className="flex items-center justify-center min-h-screen px-4">
           <div className="text-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
               className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-white/20 border-t-white rounded-full mx-auto mb-4"
-            />
+          />
             <p className="text-white text-sm sm:text-base">Loading leaderboard...</p>
           </div>
         </div>
@@ -289,7 +289,7 @@ const Community = () => {
                     <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                       <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r ${getRankColor(user.rank)} flex items-center justify-center`}>
                         <div className="scale-75 sm:scale-100">
-                          {getRankIcon(user.rank)}
+                        {getRankIcon(user.rank)}
                         </div>
                       </div>
                       <div>

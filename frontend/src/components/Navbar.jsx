@@ -229,6 +229,7 @@ const Navbar = () => {
     { name: 'Study Time', path: '/study-time', icon: BookOpen, color: 'text-green-400' },
     { name: 'Homework', path: '/homework', icon: Target, color: 'text-orange-400' },
     { name: 'Week Plan', path: '/week-plan', icon: Calendar, color: 'text-purple-400' },
+    { name: 'Study Group', path: '/community', icon: Users, color: 'text-teal-400' },
     { name: 'My World', path: '/myworld', icon: Trophy, color: 'text-pink-400' },
     { name: 'Pricing', path: '/pricing', icon: CreditCard, color: 'text-yellow-400' },
   ];
