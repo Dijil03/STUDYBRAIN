@@ -51,15 +51,38 @@ const Pricing = () => {
     try {
       console.log('Starting upgrade process:', { tier, billingCycle });
       
-      // Get user ID from the auth response
-      const authResponse = await api.get('/auth/google/success');
-      const userId = authResponse.data.user?.id;
+      let userId = null;
       
-      console.log('User ID:', userId);
+      // First, try to get userId from localStorage (faster, works even if API is down)
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        userId = storedUserId;
+        console.log('User ID from localStorage:', userId);
+      }
+      
+      // Then try to verify with API and get fresh user data (optional)
+      try {
+        const authResponse = await api.get('/auth/google/success');
+        if (authResponse.status === 200 && authResponse.data.user?.id) {
+          userId = authResponse.data.user.id;
+          console.log('User ID from API:', userId);
+          // Update localStorage with fresh data
+          localStorage.setItem('userId', userId);
+          if (authResponse.data.user.username) {
+            localStorage.setItem('username', authResponse.data.user.username);
+          }
+        }
+      } catch (apiError) {
+        console.warn('API auth check failed, using localStorage:', apiError.message);
+        // Continue with localStorage userId if available
+        if (!userId) {
+          throw new Error('Cannot get user ID. Please check your connection and try again.');
+        }
+      }
       
       if (!userId) {
-        console.error('User ID not found');
-        alert('User ID not found. Please try logging in again.');
+        console.error('User ID not found in localStorage or API');
+        alert('Please log in first to upgrade your subscription.');
         return;
       }
 
@@ -71,13 +94,29 @@ const Pricing = () => {
         timestamp: Date.now()
       }));
 
-      console.log('Redirecting to payment form...');
+      console.log('Upgrade info stored, redirecting to payment form...');
       // Redirect to payment form instead of Stripe checkout
       window.location.href = '/payment-form';
       
     } catch (error) {
       console.error('Error preparing upgrade:', error);
-      alert('Error preparing upgrade. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      let errorMessage = 'Error preparing upgrade. ';
+      
+      if (error.message.includes('Network') || error.message.includes('CORS')) {
+        errorMessage += 'Network error. Please check your connection and try again.';
+      } else if (error.message.includes('log in')) {
+        errorMessage = error.message;
+      } else {
+        errorMessage += error.message || 'Please try again.';
+      }
+      
+      alert(errorMessage);
     }
   };
 
