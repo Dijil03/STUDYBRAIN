@@ -100,10 +100,10 @@ export const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'subscription',
-      payment_method_types: ['card', 'google_pay', 'link'],
+      payment_method_types: ['card', 'link'],
       payment_method_options: {
-        google_pay: {
-          enabled: true
+        card: {
+          request_three_d_secure: 'automatic'
         }
       },
       success_url: `${frontendUrl}/payment-success?success=true&session_id={CHECKOUT_SESSION_ID}`,
@@ -256,7 +256,7 @@ export const migrateUserSubscriptions = async (req, res) => {
 export const fetchStripeSubscriptionData = async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     console.log('Fetching Stripe subscription data for user:', userId);
 
     const user = await User.findById(userId);
@@ -318,32 +318,32 @@ export const fetchStripeSubscriptionData = async (req, res) => {
       plan: planTier,
       planName: planName,
       billingCycle: billingCycle,
-      
+
       // Billing periods
       currentPeriodStart: currentPeriodStart,
       currentPeriodEnd: currentPeriodEnd,
       daysRemaining: daysRemaining,
-      
+
       // Cancellation info
       cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
       canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
-      
+
       // Pricing info
       amount: price.unit_amount,
       currency: price.currency,
       interval: price.recurring.interval,
       intervalCount: price.recurring.interval_count,
-      
+
       // Customer info
       customerId: stripeSubscription.customer,
       customerEmail: customer.email,
       customerName: customer.name,
-      
+
       // Timestamps
       created: new Date(stripeSubscription.created * 1000),
       trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
       trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
-      
+
       // Raw Stripe data for debugging
       rawStripeData: {
         subscription: stripeSubscription,
@@ -483,7 +483,7 @@ export const updateSubscriptionFromSession = async (req, res) => {
     // Map tier from metadata
     const tier = session.metadata?.tier || 'premium';
     const billingCycle = session.metadata?.billingCycle || 'monthly';
-    
+
     const planNames = {
       'premium': 'Study Pro',
       'enterprise': 'Study Master'
