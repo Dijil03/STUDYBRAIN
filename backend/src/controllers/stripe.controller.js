@@ -89,7 +89,7 @@ export const createCheckoutSession = async (req, res) => {
     const frontendUrl = getFrontendUrl();
     console.log('Using frontend URL for Stripe redirects:', frontendUrl);
 
-    // Create checkout session
+    // Create checkout session with explicit payment method configuration
     const session = await stripe.checkout.sessions.create({
       customer_email: user.email,
       billing_address_collection: 'auto',
@@ -100,6 +100,12 @@ export const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'subscription',
+      payment_method_types: ['card', 'google_pay', 'link'],
+      payment_method_options: {
+        google_pay: {
+          enabled: true
+        }
+      },
       success_url: `${frontendUrl}/payment-success?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/pricing?canceled=true`,
       metadata: {
