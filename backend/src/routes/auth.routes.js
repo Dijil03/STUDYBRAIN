@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, login, logout, updateAvatar, getUserProfile, googleAuth, googleDocsAuth, googleClassroomAuth, googleCallback, googleAuthSuccess, googleAuthFailure, debugUserSubscription, uploadAvatar, updateAvatarId, upload } from '../controllers/auth.controller.js';
+import { signup, login, logout, updateAvatar, getUserProfile, googleAuth, googleDocsAuth, googleClassroomAuth, googleCalendarAuth, googleCallback, googleAuthSuccess, googleAuthFailure, debugUserSubscription, uploadAvatar, updateAvatarId, upload } from '../controllers/auth.controller.js';
 import protectRoutes from '../middlewares/protectRoutes.js';
 
 const router = express.Router();
@@ -26,6 +26,9 @@ router.get('/google-docs', googleDocsAuth);
 
 // Google Classroom authorization (separate from login)
 router.get('/google-classroom', googleClassroomAuth);
+
+// Google Calendar authorization (separate from login)
+router.get('/google-calendar', googleCalendarAuth);
 
 router.get('/google/success', protectRoutes, googleAuthSuccess);
 router.get('/google/failure', googleAuthFailure);

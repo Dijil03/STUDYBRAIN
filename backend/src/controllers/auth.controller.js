@@ -128,6 +128,18 @@ export const googleClassroomAuth = (req, res, next) => {
   })(req, res, next);
 };
 
+// Google Calendar authorization
+export const googleCalendarAuth = (req, res, next) => {
+  passport.authenticate('google', {
+    scope: [
+      'profile',
+      'email',
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/calendar.events'
+    ]
+  })(req, res, next);
+};
+
 export const googleCallback = (req, res, next) => {
   // Get client URL with fallback - MUST return a valid URL string, never undefined
   const getClientUrl = () => {

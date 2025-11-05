@@ -97,6 +97,9 @@ STUDY_MASTER_YEARLY_PRICE_ID=price_xxx
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
+# Hugging Face (For AI features - Get from https://huggingface.co)
+HF_TOKEN=your_huggingface_token
+
 # Email Service (Choose one)
 # Option 1: Production Email (Gmail)
 EMAIL_USER=your_email@gmail.com

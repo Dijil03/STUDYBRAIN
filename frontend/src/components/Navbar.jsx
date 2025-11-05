@@ -266,7 +266,8 @@ const Navbar = () => {
     { name: 'Community', path: '/community', icon: Users, color: 'text-teal-400' },
     { name: 'Weekly Homework Log', path: '/weekly-homework-log', icon: BarChart3, color: 'text-orange-500' },
     { name: 'Exam Time', path: '/exam-time', icon: Clock, color: 'text-red-500' },
-    { name: 'Note', path: '/note', icon: FileText, color: 'text-gray-400' }
+    { name: 'Note', path: '/note', icon: FileText, color: 'text-gray-400' },
+    { name: 'Calendar', path: '/calendar', icon: Calendar, color: 'text-blue-400' }
   ];
 
   const isActive = (path) => location.pathname === path;
