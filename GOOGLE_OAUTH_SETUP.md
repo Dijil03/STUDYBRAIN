@@ -67,7 +67,35 @@ Based on your application setup, you might need:
 - `https://your-backend-domain.com/api/auth/google/callback`
 - `https://your-backend-domain.com/api/auth/google/callback` (without trailing slash)
 
-### Step 6: Verify
+### Step 6: Fix "Google hasn't verified this app" Warning
+
+If you see the warning "Google hasn't verified this app", this is because your OAuth app is in **Testing** mode. To fix this:
+
+#### Option 1: Add Test Users (Recommended for Development)
+
+1. Go to **APIs & Services** → **OAuth consent screen**
+2. Scroll down to **Test users** section
+3. Click **+ ADD USERS**
+4. Add your email address (and any other users who need access)
+5. Click **ADD**
+6. Save the changes
+
+**Note:** Only users in the test users list can sign in while the app is in Testing mode.
+
+#### Option 2: Publish Your App (For Production)
+
+If you want to allow all users to sign in:
+
+1. Go to **APIs & Services** → **OAuth consent screen**
+2. Click **PUBLISH APP**
+3. You'll see a warning about verification
+4. For Calendar API, you may need to:
+   - Submit your app for verification (if using sensitive scopes)
+   - Or use less sensitive scopes
+
+**Important:** For Calendar API (`calendar` and `calendar.events` scopes), Google requires app verification if you want to allow all users. For personal use or testing, use **Option 1** (Test Users).
+
+### Step 7: Verify
 
 1. Save the changes in Google Cloud Console
 2. Wait a few minutes for changes to propagate
@@ -75,7 +103,12 @@ Based on your application setup, you might need:
 
 ### Troubleshooting
 
-**Still getting the error?**
+**"Google hasn't verified this app" warning?**
+- This is normal for apps in Testing mode
+- Add your email to **Test users** in OAuth consent screen
+- Or publish your app (requires verification for sensitive scopes)
+
+**Still getting redirect_uri_mismatch error?**
 1. Check the exact redirect URI in the error message
 2. Make sure it matches **exactly** what's in Google Cloud Console
 3. Check for:
@@ -86,6 +119,11 @@ Based on your application setup, you might need:
 
 **Need to check what redirect URI is being sent?**
 Check your backend logs when you click "Sign in with Google" - it will show the callback URL being used.
+
+**Calendar API not working?**
+- Make sure Google Calendar API is enabled in **APIs & Services** → **Library**
+- Check that you've added the Calendar scopes to your OAuth consent screen
+- Verify test users have access if app is in Testing mode
 
 ### Quick Fix Checklist
 
