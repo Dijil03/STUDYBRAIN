@@ -45,6 +45,7 @@ const LoadingDemo = lazy(() => import("./pages/LoadingDemo"));
 const AI = lazy(() => import("./pages/AI"));
 const AITutorPage = lazy(() => import("./pages/AITutorPage"));
 const Calendar = lazy(() => import("./pages/Calendar"));
+const RevisionScheduler = lazy(() => import("./pages/RevisionScheduler"));
 
 const App = () => {
   return (
@@ -96,6 +97,7 @@ const App = () => {
             <Route path="/ai" element={<AI />} />
             <Route path="/ai-tutor" element={<AITutorPage />} />
             <Route path="/calendar" element={<Calendar />} />
+            <Route path="/revisions" element={<RevisionScheduler />} />
             <Route path="/study-groups" element={<JoinViaInvite />} />
             </Routes>
             </Suspense>
