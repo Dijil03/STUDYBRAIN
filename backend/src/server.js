@@ -20,6 +20,7 @@ import googleCalendarRoutes from './routes/googleCalendar.routes.js'
 import studyPlanRoutes from './routes/studyplan.routes.js'
 import aiRoutes from './routes/ai.routes.js'
 import revisionRoutes from './routes/revision.routes.js'
+import conceptRoutes from './routes/concept.routes.js'
 import connectDB from './db/connection.js';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -189,6 +190,7 @@ app.use('/api/google-classroom', googleClassroomRoutes);
 app.use('/api/google-calendar', googleCalendarRoutes);
 app.use('/api/study-plans', studyPlanRoutes);
 app.use('/api/revisions', revisionRoutes);
+app.use('/api/concepts', conceptRoutes);
 
 // Register AI routes with error handling
 try {

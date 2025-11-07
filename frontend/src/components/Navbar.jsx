@@ -268,7 +268,8 @@ const Navbar = () => {
     { name: 'Exam Time', path: '/exam-time', icon: Clock, color: 'text-red-500' },
     { name: 'Note', path: '/note', icon: FileText, color: 'text-gray-400' },
     { name: 'Calendar', path: '/calendar', icon: Calendar, color: 'text-blue-400' },
-    { name: 'Revision Scheduler', path: '/revisions', icon: Brain, color: 'text-purple-400' }
+    { name: 'Revision Scheduler', path: '/revisions', icon: Brain, color: 'text-purple-400' },
+    { name: 'Concept Mastery Map', path: '/concept-map', icon: Globe, color: 'text-cyan-300' }
   ];
 
   const isActive = (path) => location.pathname === path;

@@ -87,6 +87,8 @@ public
 # Temporary folders
 tmp/
 temp/
+backend/*-watch.html
+backend/*player-script.js
 
 # Editor directories and files
 .vscode/*

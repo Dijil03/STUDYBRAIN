@@ -46,6 +46,7 @@ const AI = lazy(() => import("./pages/AI"));
 const AITutorPage = lazy(() => import("./pages/AITutorPage"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const RevisionScheduler = lazy(() => import("./pages/RevisionScheduler"));
+const ConceptMastery = lazy(() => import("./pages/ConceptMastery"));
 
 const App = () => {
   return (
@@ -98,6 +99,7 @@ const App = () => {
             <Route path="/ai-tutor" element={<AITutorPage />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/revisions" element={<RevisionScheduler />} />
+            <Route path="/concept-map" element={<ConceptMastery />} />
             <Route path="/study-groups" element={<JoinViaInvite />} />
             </Routes>
             </Suspense>
