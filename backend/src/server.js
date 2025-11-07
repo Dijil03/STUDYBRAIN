@@ -21,6 +21,7 @@ import studyPlanRoutes from './routes/studyplan.routes.js'
 import aiRoutes from './routes/ai.routes.js'
 import revisionRoutes from './routes/revision.routes.js'
 import conceptRoutes from './routes/concept.routes.js'
+import gardenRoutes from './routes/garden.routes.js'
 import connectDB from './db/connection.js';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -191,6 +192,7 @@ app.use('/api/google-calendar', googleCalendarRoutes);
 app.use('/api/study-plans', studyPlanRoutes);
 app.use('/api/revisions', revisionRoutes);
 app.use('/api/concepts', conceptRoutes);
+app.use('/api/garden', gardenRoutes);
 
 // Register AI routes with error handling
 try {

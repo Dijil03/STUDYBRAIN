@@ -53,6 +53,7 @@ import {
   Zap as ZapIcon,
   Sparkles as SparklesIcon,
   GraduationCap,
+  Leaf,
 } from 'lucide-react';
 import SimpleMusicPlayer from './SimpleMusicPlayer';
 
@@ -269,7 +270,8 @@ const Navbar = () => {
     { name: 'Note', path: '/note', icon: FileText, color: 'text-gray-400' },
     { name: 'Calendar', path: '/calendar', icon: Calendar, color: 'text-blue-400' },
     { name: 'Revision Scheduler', path: '/revisions', icon: Brain, color: 'text-purple-400' },
-    { name: 'Concept Mastery Map', path: '/concept-map', icon: Globe, color: 'text-cyan-300' }
+    { name: 'Concept Mastery Map', path: '/concept-map', icon: Globe, color: 'text-cyan-300' },
+    { name: 'Focus Garden', path: '/focus-garden', icon: Leaf, color: 'text-emerald-300' }
   ];
 
   const isActive = (path) => location.pathname === path;
