@@ -42,7 +42,13 @@ const statusStyles = {
 };
 
 const NodeSphere = ({ node, isSelected, onSelect }) => {
-  const scale = useMemo(() => (node.visuals?.size || 20) / 14, [node.visuals]);
+  const scale = useMemo(() => {
+    const base = node.visuals?.size || 20;
+    return Math.max(1.6, base / 6);
+  }, [node.visuals]);
+  const glowScale = useMemo(() => scale * 1.55, [scale]);
+  const labelOffset = useMemo(() => -2.8 * scale, [scale]);
+  const fontSize = useMemo(() => Math.min(2.2, 1.2 * (scale / 1.6)), [scale]);
   const color = node.visuals?.color || '#ffffff';
   const glow = node.visuals?.glow || 'rgba(255,255,255,0.4)';
 
@@ -51,8 +57,8 @@ const NodeSphere = ({ node, isSelected, onSelect }) => {
       <mesh onClick={(event) => {
         event.stopPropagation();
         onSelect(node);
-      }}>
-        <sphereGeometry args={[1, 32, 32]} />
+      }} scale={[scale, scale, scale]}>
+        <sphereGeometry args={[1, 42, 42]} />
         <meshStandardMaterial
           color={color}
           emissive={isSelected ? color : '#111111'}
@@ -60,8 +66,8 @@ const NodeSphere = ({ node, isSelected, onSelect }) => {
           metalness={0.2}
           roughness={0.3}
         />
-        <mesh scale={[1.4, 1.4, 1.4]}>
-          <sphereGeometry args={[1, 32, 32]} />
+        <mesh scale={[glowScale, glowScale, glowScale]}>
+          <sphereGeometry args={[1, 42, 42]} />
           <meshBasicMaterial
             color={glow}
             transparent
@@ -70,11 +76,13 @@ const NodeSphere = ({ node, isSelected, onSelect }) => {
         </mesh>
       </mesh>
       <Text
-        position={[0, -2.2, 0]}
-        fontSize={1.2}
-        color="#dbeafe"
+        position={[0, labelOffset, 0]}
+        fontSize={fontSize}
+        color="#f8fafc"
         anchorX="center"
         anchorY="top"
+        outlineWidth={0.015}
+        outlineColor="rgba(15, 23, 42, 0.6)"
       >
         {node.label}
       </Text>
@@ -115,7 +123,7 @@ const ConceptCanvas = ({ nodes, links, onSelectNode, selectedNode }) => {
 
   return (
     <div className="h-[540px] md:h-[620px] rounded-3xl overflow-hidden border border-slate-800 bg-slate-950/60 backdrop-blur-sm">
-      <Canvas camera={{ position: [0, 0, 150], fov: 60 }}>
+      <Canvas camera={{ position: [0, 0, 115], fov: 58 }}>
         <color attach="background" args={['#030712']} />
         <ambientLight intensity={0.5} />
         <pointLight position={[0, 0, 150]} intensity={1.2} color="#a855f7" />
@@ -134,7 +142,7 @@ const ConceptCanvas = ({ nodes, links, onSelectNode, selectedNode }) => {
           />
         ))}
 
-        <OrbitControls enableZoom enablePan />
+        <OrbitControls enableZoom enablePan minDistance={40} maxDistance={260} />
       </Canvas>
     </div>
   );
