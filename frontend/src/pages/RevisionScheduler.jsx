@@ -106,7 +106,7 @@ const RevisionScheduler = () => {
   const fetchRevisions = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/api/revisions/${userId}/revisions`);
+      const response = await api.get(`/revisions/${userId}/revisions`);
       if (response.data.success) {
         setRevisions(response.data.revisions);
       }
@@ -120,7 +120,7 @@ const RevisionScheduler = () => {
 
   const fetchDueItems = async () => {
     try {
-      const response = await api.get(`/api/revisions/${userId}/revisions/due`);
+      const response = await api.get(`/revisions/${userId}/revisions/due`);
       if (response.data.success) {
         setDueItems(response.data.dueItems);
       }
@@ -131,7 +131,7 @@ const RevisionScheduler = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await api.get(`/api/revisions/${userId}/revisions/statistics`);
+      const response = await api.get(`/revisions/${userId}/revisions/statistics`);
       if (response.data.success) {
         setStatistics(response.data.statistics);
       }
@@ -147,7 +147,7 @@ const RevisionScheduler = () => {
         return;
       }
 
-      const response = await api.post(`/api/revisions/${userId}/revisions`, newRevision);
+      const response = await api.post(`/revisions/${userId}/revisions`, newRevision);
       if (response.data.success) {
         toast.success('Revision item created successfully');
         setShowCreateModal(false);
@@ -170,7 +170,7 @@ const RevisionScheduler = () => {
   const handleReview = async () => {
     try {
       const response = await api.post(
-        `/api/revisions/${userId}/revisions/${selectedRevision._id}/review`,
+        `/revisions/${userId}/revisions/${selectedRevision._id}/review`,
         { quality: reviewQuality }
       );
       
@@ -193,7 +193,7 @@ const RevisionScheduler = () => {
     }
 
     try {
-      const response = await api.delete(`/api/revisions/${userId}/revisions/${revisionId}`);
+      const response = await api.delete(`/revisions/${userId}/revisions/${revisionId}`);
       if (response.data.success) {
         toast.success('Revision item deleted');
         fetchRevisions();
@@ -207,7 +207,7 @@ const RevisionScheduler = () => {
 
   const syncAllToCalendar = async () => {
     try {
-      const response = await api.post(`/api/revisions/${userId}/revisions/sync-calendar`);
+      const response = await api.post(`/revisions/${userId}/revisions/sync-calendar`);
       if (response.data.success) {
         toast.success(`Synced ${response.data.synced} revisions to Google Calendar`);
         fetchRevisions();

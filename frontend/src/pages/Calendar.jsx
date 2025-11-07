@@ -58,7 +58,7 @@ const Calendar = () => {
 
   const checkConnection = async () => {
     try {
-      const response = await api.get(`/api/google-calendar/${userId}/events`, {
+      const response = await api.get(`/google-calendar/${userId}/events`, {
         params: {
           maxResults: 1
         }
@@ -83,7 +83,7 @@ const Calendar = () => {
       const start = startOfMonth(currentDate);
       const end = endOfMonth(currentDate);
       
-      const response = await api.get(`/api/google-calendar/${userId}/all-events`, {
+      const response = await api.get(`/google-calendar/${userId}/all-events`, {
         params: {
           timeMin: start.toISOString(),
           timeMax: end.toISOString()
@@ -136,7 +136,7 @@ const Calendar = () => {
 
   const handleCreateEvent = async () => {
     try {
-      const response = await api.post(`/api/google-calendar/${userId}/events`, {
+      const response = await api.post(`/google-calendar/${userId}/events`, {
         summary: newEvent.summary,
         description: newEvent.description,
         start: newEvent.start.toISOString(),
