@@ -40,10 +40,16 @@ const timerStates = {
 };
 
 const createEmptyGrid = (rows, cols) =>
-  Array.from({ length: rows * cols }, (_, idx) => ({
-    tileIndex: idx,
-    occupied: false,
-  }));
+  Array.from({ length: rows * cols }, (_, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    return {
+      tileIndex: idx,
+      row,
+      col,
+      occupied: false,
+    };
+  });
 
 const formatMinutes = (minutes) => `${minutes} min`;
 
@@ -60,6 +66,7 @@ const FocusGarden = () => {
   const [timerState, setTimerState] = useState(timerStates.idle);
   const [secondsRemaining, setSecondsRemaining] = useState(25 * 60);
   const [sessionId, setSessionId] = useState(null);
+  const [viewMode, setViewMode] = useState('isometric');
 
   const fetchOverview = useCallback(async () => {
     if (!userId) return;
@@ -213,6 +220,46 @@ const FocusGarden = () => {
       };
     });
   }, [overview]);
+
+  const isometricLayout = useMemo(() => {
+    if (!overview?.garden) {
+      return {
+        width: 0,
+        height: 0,
+        tileWidth: 120,
+        tileHeight: 60,
+        tiles: [],
+      };
+    }
+
+    const rows = overview.garden.gridRows;
+    const cols = overview.garden.gridColumns;
+    const tileWidth = 120;
+    const tileHeight = tileWidth / 2;
+    const xOffset = rows * (tileWidth / 2);
+    const width = (cols + rows) * (tileWidth / 2) + tileWidth;
+    const height = (cols + rows) * (tileHeight / 2) + tileHeight;
+
+    const tiles = plantGrid.map((tile) => {
+      const isoX = (tile.col - tile.row) * (tileWidth / 2) + xOffset;
+      const isoY = (tile.col + tile.row) * (tileHeight / 2);
+      const points = [
+        `${isoX},${isoY - tileHeight / 2}`,
+        `${isoX + tileWidth / 2},${isoY}`,
+        `${isoX},${isoY + tileHeight / 2}`,
+        `${isoX - tileWidth / 2},${isoY}`,
+      ].join(' ');
+
+      return {
+        ...tile,
+        isoX,
+        isoY,
+        points,
+      };
+    });
+
+    return { width, height, tileWidth, tileHeight, tiles };
+  }, [overview, plantGrid]);
 
   const inventoryLookup = useMemo(() => {
     const map = new Map();
@@ -478,7 +525,24 @@ const FocusGarden = () => {
                 <TreePine className="w-5 h-5 text-emerald-300" />
                 <span>Your forest</span>
               </h2>
-              <span className="text-xs text-slate-500 uppercase tracking-wide">Tile overview</span>
+              <div className="flex items-center space-x-2 bg-slate-950/60 border border-slate-800 rounded-full px-1 py-1">
+                {[
+                  { id: 'isometric', label: 'Isometric' },
+                  { id: 'grid', label: 'Grid' },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setViewMode(option.id)}
+                    className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
+                      viewMode === option.id
+                        ? 'bg-emerald-500 text-slate-950 font-semibold shadow shadow-emerald-500/30'
+                        : 'text-slate-400 hover:text-emerald-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {loading ? (
@@ -487,7 +551,7 @@ const FocusGarden = () => {
                   <Sprout className="w-8 h-8 text-emerald-300" />
                 </motion.div>
               </div>
-            ) : (
+            ) : viewMode === 'grid' ? (
               <div
                 className="grid gap-3"
                 style={{
@@ -525,6 +589,117 @@ const FocusGarden = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            ) : (
+              <div className="relative w-full">
+                <div className="relative mx-auto" style={{ width: isometricLayout.width, height: isometricLayout.height }}>
+                  <svg
+                    width={isometricLayout.width}
+                    height={isometricLayout.height + 60}
+                    viewBox={`0 0 ${isometricLayout.width} ${isometricLayout.height + 60}`}
+                    className="w-full h-auto drop-shadow-[0_25px_40px_rgba(15,118,110,0.35)]"
+                  >
+                    <defs>
+                      <linearGradient id="boardGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#99f6e4" />
+                        <stop offset="100%" stopColor="#22d3ee" />
+                      </linearGradient>
+                      <linearGradient id="tileGrass" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#bef264" />
+                        <stop offset="100%" stopColor="#4ade80" />
+                      </linearGradient>
+                      <linearGradient id="tileSoil" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#78350f" />
+                        <stop offset="100%" stopColor="#451a03" />
+                      </linearGradient>
+                      <radialGradient id="treeCanopy" cx="50%" cy="40%" r="60%">
+                        <stop offset="0%" stopColor="#bbf7d0" />
+                        <stop offset="70%" stopColor="#4ade80" />
+                        <stop offset="100%" stopColor="#16a34a" />
+                      </radialGradient>
+                      <filter id="tileShadow" x="-40%" y="-40%" width="180%" height="180%">
+                        <feDropShadow dx="0" dy="10" stdDeviation="12" floodColor="rgba(15,118,110,0.35)" />
+                      </filter>
+                    </defs>
+
+                    <g filter="url(#tileShadow)">
+                      <polygon
+                        points={`${isometricLayout.width / 2},10 ${isometricLayout.width - 20},${isometricLayout.height / 2} ${
+                          isometricLayout.width / 2
+                        },${isometricLayout.height} 20,${isometricLayout.height / 2}`}
+                        fill="url(#boardGradient)"
+                        opacity="0.4"
+                      />
+                    </g>
+
+                    {isometricLayout.tiles.map((tile) => {
+                      const plant = tile.plant;
+                      const fillColor = plant
+                        ? plant.stage === 'blooming'
+                          ? 'url(#treeCanopy)'
+                          : plant.stage === 'mature'
+                          ? '#4ade80'
+                          : plant.stage === 'sprout'
+                          ? '#86efac'
+                          : '#bbf7d0'
+                        : 'url(#tileGrass)';
+
+                      return (
+                        <g key={tile.id} transform={`translate(0, 20)`}>
+                          <polygon points={tile.points} fill={fillColor} stroke="#134e4a" strokeWidth="1.5" opacity={plant ? 1 : 0.65} />
+
+                          <polygon
+                            points={`${tile.isoX},${tile.isoY + isometricLayout.tileHeight / 2} ${
+                              tile.isoX + isometricLayout.tileWidth / 2
+                            },${tile.isoY + isometricLayout.tileHeight} ${tile.isoX},${
+                              tile.isoY + isometricLayout.tileHeight + isometricLayout.tileHeight / 2
+                            } ${tile.isoX - isometricLayout.tileWidth / 2},${tile.isoY + isometricLayout.tileHeight}`}
+                            fill="url(#tileSoil)"
+                            opacity="0.7"
+                          />
+
+                          {plant && (
+                            <>
+                              <path
+                                d={`M${tile.isoX},${tile.isoY + 10} C${tile.isoX - 6},${tile.isoY + 30} ${tile.isoX - 4},${tile.isoY + 45} ${
+                                  tile.isoX - 2
+                                },${tile.isoY + 60}`}
+                                stroke="#854d0e"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                              />
+                              <circle cx={tile.isoX} cy={tile.isoY - 12} r={18} fill="url(#treeCanopy)" opacity="0.88" />
+                              <circle cx={tile.isoX - 14} cy={tile.isoY - 6} r={10} fill="#bbf7d0" opacity="0.8" />
+                              <circle cx={tile.isoX + 14} cy={tile.isoY - 4} r={12} fill="#86efac" opacity="0.85" />
+                              <text
+                                x={tile.isoX}
+                                y={tile.isoY + 78}
+                                textAnchor="middle"
+                                fill="#f0fdfa"
+                                fontSize="10"
+                                fontFamily="Inter, sans-serif"
+                                opacity="0.85"
+                              >
+                                {plant.displayName.length > 18 ? `${plant.displayName.slice(0, 17)}…` : plant.displayName}
+                              </text>
+                              <text
+                                x={tile.isoX}
+                                y={tile.isoY + 92}
+                                textAnchor="middle"
+                                fill="#99f6e4"
+                                fontSize="9"
+                                fontFamily="Inter, sans-serif"
+                                opacity="0.75"
+                              >
+                                {`Stage ${plant.stage ?? '1'} • ${plant.totalFocusMinutes}m`}
+                              </text>
+                            </>
+                          )}
+                        </g>
+                      );
+                    })}
+                  </svg>
+                </div>
               </div>
             )}
           </motion.div>
