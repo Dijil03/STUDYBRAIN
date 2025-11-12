@@ -46,13 +46,22 @@ const __dirname = path.dirname(__filename);
 // CORS headers MUST be set FIRST, before any other middleware
 // This is a manual implementation to ensure it always works
 // Define allowed origins
+const normalizeOrigin = (origin) => origin ? origin.replace(/\/$/, '') : origin;
+
+const wildcardOriginMatchers = [
+  /\.vercel\.app$/,
+  /\.onrender\.com$/,
+];
+
 const getAllowedOrigins = () => {
   const allowed = [
     'https://studybrain.vercel.app',
     'https://www.studybrain.vercel.app',
     process.env.CLIENT_URL,
     process.env.FRONTEND_URL,
-  ].filter(Boolean);
+    process.env.APP_URL,
+    process.env.PUBLIC_APP_URL,
+  ].filter(Boolean).map(normalizeOrigin);
 
   // Add localhost for development
   if (process.env.NODE_ENV !== 'production') {
@@ -63,6 +72,7 @@ const getAllowedOrigins = () => {
 };
 
 const allowedOrigins = getAllowedOrigins();
+const allowedOriginsSet = new Set(allowedOrigins);
 console.log('✅ Allowed CORS origins:', allowedOrigins);
 
 app.use((req, res, next) => {
@@ -72,13 +82,18 @@ app.use((req, res, next) => {
 
   // Check if origin is allowed
   // Allow requests with no origin (like mobile apps or curl requests) only in development
+  const normalizedOrigin = normalizeOrigin(origin);
+  const matchesWildcard = normalizedOrigin
+    ? wildcardOriginMatchers.some((regex) => regex.test(normalizedOrigin))
+    : false;
+  const isExplicitlyAllowed = normalizedOrigin ? allowedOriginsSet.has(normalizedOrigin) : false;
   const isAllowedOrigin = !origin
     ? (process.env.NODE_ENV !== 'production')
-    : allowedOrigins.includes(origin);
+    : (isExplicitlyAllowed || matchesWildcard);
 
   // Only set CORS headers if origin is allowed (or no origin in dev mode)
   if (isAllowedOrigin) {
-    const requestOrigin = origin || '*';
+    const requestOrigin = normalizedOrigin || '*';
     res.setHeader('Access-Control-Allow-Origin', requestOrigin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
@@ -109,8 +124,11 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
+    const normalizedOrigin = normalizeOrigin(origin);
+    const matchesWildcard = wildcardOriginMatchers.some((regex) => regex.test(normalizedOrigin));
+
+    // Check if origin is in allowed list or matches wildcard
+    if (allowedOriginsSet.has(normalizedOrigin) || matchesWildcard) {
       callback(null, true);
     } else {
       console.warn(`⚠️ CORS: Origin not allowed: ${origin}`);
