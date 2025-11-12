@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
+import { saveUserSession } from '../utils/session';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -44,10 +45,27 @@ const Login = () => {
       const data = response.data;
 
       if (response.status === 200) {
+        const {
+          userId,
+          username: loggedInUsername,
+          email: loggedInEmail,
+          hasCompletedPersonalization,
+          personalization,
+        } = response.data || {};
+
+        saveUserSession({
+          id: userId,
+          username: loggedInUsername,
+          email: loggedInEmail,
+          hasCompletedPersonalization,
+          personalization,
+        });
+
         setSuccess('Login successful! Redirecting...');
+        const targetRoute = hasCompletedPersonalization ? '/dashboard' : '/personalize';
         setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
+          navigate(targetRoute);
+        }, 1200);
       } else {
         setError(data.message || 'Login failed');
       }

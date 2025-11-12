@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, RefreshCw, Zap, Crown, Star } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
+import { saveUserSession } from '../utils/session';
 
 const SubscriptionTest = () => {
   const [user, setUser] = useState(null);
@@ -18,6 +19,7 @@ const SubscriptionTest = () => {
       const response = await api.get('/auth/google/success');
       if (response.status === 200) {
         setUser(response.data.user);
+        saveUserSession(response.data.user);
         console.log('User data:', response.data.user);
         console.log('Subscription data:', response.data.user?.subscription);
       }

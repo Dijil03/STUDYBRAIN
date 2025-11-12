@@ -5,6 +5,7 @@ import { CheckCircle, Calendar, RefreshCw, ArrowLeft, CreditCard } from 'lucide-
 import Navbar from '../components/Navbar';
 import PageSEO from '../components/PageSEO';
 import api from '../utils/axios';
+import { saveUserSession } from '../utils/session';
 
 const CancellationSuccess = () => {
   const [user, setUser] = useState(null);
@@ -28,6 +29,7 @@ const CancellationSuccess = () => {
       const response = await api.get('/auth/google/success');
       if (response.status === 200) {
         setUser(response.data.user);
+        saveUserSession(response.data.user);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);

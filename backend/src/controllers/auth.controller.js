@@ -49,7 +49,10 @@ export const signup = async (req, res) => {
     res.status(201).json({
       message: 'User created successfully',
       username: user.username,
-      email: user.email
+      email: user.email,
+      userId: user._id,
+      hasCompletedPersonalization: user.hasCompletedPersonalization,
+      personalization: user.personalization
     })
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
@@ -84,7 +87,9 @@ export const login = async (req, res) => {
       message: 'User logged in successfully',
       username: user.username,
       email: user.email,
-      userId: user._id
+      userId: user._id,
+      hasCompletedPersonalization: user.hasCompletedPersonalization,
+      personalization: user.personalization
     });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
@@ -235,7 +240,9 @@ export const googleCallback = (req, res, next) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        profilePicture: user.profilePicture
+        profilePicture: user.profilePicture,
+        hasCompletedPersonalization: user.hasCompletedPersonalization,
+        personalization: user.personalization
       };
 
       const successParams = `success=${encodeURIComponent('Login successful')}&user=${encodeURIComponent(JSON.stringify(userData))}`;
@@ -281,7 +288,9 @@ export const googleAuthSuccess = async (req, res) => {
           profilePicture: freshUser.profilePicture,
           isGoogleUser: freshUser.isGoogleUser,
           subscription: freshUser.subscription,
-          createdAt: freshUser.createdAt
+          createdAt: freshUser.createdAt,
+          hasCompletedPersonalization: freshUser.hasCompletedPersonalization,
+          personalization: freshUser.personalization
         }
       });
     } else {
@@ -377,11 +386,95 @@ export const getUserProfile = async (req, res) => {
       avatar: user.avatar,
       profilePicture: user.profilePicture,
       isGoogleUser: user.isGoogleUser,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
+      hasCompletedPersonalization: user.hasCompletedPersonalization,
+      personalization: user.personalization
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
     res.status(500).json({ message: 'Failed to fetch user profile' });
+  }
+};
+
+export const getPersonalization = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select('personalization hasCompletedPersonalization');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      personalization: user.personalization || {},
+      hasCompletedPersonalization: user.hasCompletedPersonalization || false,
+    });
+  } catch (error) {
+    console.error('Error fetching personalization data:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch personalization data' });
+  }
+};
+
+export const updatePersonalization = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updates = req.body || {};
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const existingPersonalization = user.personalization
+      ? (typeof user.personalization.toObject === 'function'
+        ? user.personalization.toObject()
+        : user.personalization)
+      : {};
+
+    const focusAreas = Array.isArray(updates.focusAreas)
+      ? updates.focusAreas.filter(Boolean)
+      : existingPersonalization.focusAreas || [];
+
+    const preferredStudyTimes = {
+      ...(existingPersonalization.preferredStudyTimes || {}),
+      ...(updates.preferredStudyTimes || {}),
+    };
+
+    const notifications = {
+      ...(existingPersonalization.notifications || {}),
+      ...(updates.notifications || {}),
+    };
+
+    const personalizationPayload = {
+      ...existingPersonalization,
+      ...updates,
+      focusAreas,
+      preferredStudyTimes,
+      notifications,
+    };
+
+    if (!personalizationPayload.createdAt) {
+      personalizationPayload.createdAt = existingPersonalization.createdAt || new Date();
+    }
+    personalizationPayload.updatedAt = new Date();
+
+    user.personalization = personalizationPayload;
+    user.hasCompletedPersonalization = updates.hasCompletedPersonalization === false
+      ? false
+      : true;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Personalization preferences saved',
+      personalization: user.personalization,
+      hasCompletedPersonalization: user.hasCompletedPersonalization,
+    });
+  } catch (error) {
+    console.error('Error updating personalization data:', error);
+    res.status(500).json({ success: false, message: 'Failed to save personalization data' });
   }
 };
 

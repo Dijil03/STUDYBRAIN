@@ -9,6 +9,7 @@ import api from '../utils/axios';
 import { toast } from 'react-toastify';
 import FeatureGate from '../components/FeatureGate';
 import { useFeatureGate, FEATURES } from '../utils/featureGate';
+import { saveUserSession } from '../utils/session';
 import {
   Users,
   Plus,
@@ -73,11 +74,13 @@ const StudyGroups = () => {
     try {
       const storedUserId = localStorage.getItem('userId');
       const storedUsername = localStorage.getItem('username');
+      const storedHasPersonalized = localStorage.getItem('hasCompletedPersonalization') === 'true';
       
       if (storedUserId) {
         setUser({ 
           id: storedUserId, 
-          username: storedUsername || 'User' 
+          username: storedUsername || 'User',
+          hasCompletedPersonalization: storedHasPersonalized
         });
         return;
       }
@@ -87,8 +90,7 @@ const StudyGroups = () => {
         if (response.status === 200) {
           const userData = response.data.user;
           setUser(userData);
-          localStorage.setItem('userId', userData.id);
-          localStorage.setItem('username', userData.username || userData.firstName || 'User');
+          saveUserSession(userData);
         }
       } catch (authError) {
         console.log('No authenticated user, continuing with guest mode');
@@ -99,10 +101,12 @@ const StudyGroups = () => {
       console.error('Error fetching user profile:', error);
       const storedUserId = localStorage.getItem('userId');
       const storedUsername = localStorage.getItem('username');
+      const storedHasPersonalized = localStorage.getItem('hasCompletedPersonalization') === 'true';
       if (storedUserId) {
         setUser({ 
           id: storedUserId, 
-          username: storedUsername || 'User' 
+          username: storedUsername || 'User',
+          hasCompletedPersonalization: storedHasPersonalized
         });
       } else {
         // Fallback to guest mode

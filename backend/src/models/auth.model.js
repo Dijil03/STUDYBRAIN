@@ -87,6 +87,73 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  hasCompletedPersonalization: {
+    type: Boolean,
+    default: false,
+  },
+  personalization: {
+    studyGoal: {
+      type: String,
+      default: '',
+    },
+    focusAreas: {
+      type: [String],
+      default: [],
+    },
+    preferredStudyTimes: {
+      morning: { type: Boolean, default: false },
+      afternoon: { type: Boolean, default: false },
+      evening: { type: Boolean, default: false },
+    },
+    focusStyle: {
+      type: String,
+      default: 'balanced',
+    },
+    motivationStyle: {
+      type: String,
+      default: 'streaks',
+    },
+    preferredSessionLength: {
+      type: Number,
+      default: 25,
+    },
+    weeklyTargetHours: {
+      type: Number,
+      default: 10,
+    },
+    notifications: {
+      studyReminders: { type: Boolean, default: true },
+      focusTimer: { type: Boolean, default: true },
+      progressReports: { type: Boolean, default: true },
+      accountabilityBuddy: { type: Boolean, default: false },
+    },
+    productivityProfile: {
+      type: String,
+      default: 'steady',
+    },
+    timezone: {
+      type: String,
+      default: '',
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+});
+
+userSchema.pre('save', function (next) {
+  if (this.isModified('personalization')) {
+    if (!this.personalization.createdAt) {
+      this.personalization.createdAt = new Date();
+    }
+    this.personalization.updatedAt = new Date();
+  }
+  next();
 });
 
 const User = mongoose.model("User", userSchema);

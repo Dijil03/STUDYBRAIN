@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import PageSEO from "../components/PageSEO";
 import api from "../utils/axios";
 import { useTheme } from "../contexts/ThemeContext";
+import { saveUserSession } from "../utils/session";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import {
@@ -126,8 +127,7 @@ const Dashboard = () => {
       try {
         const userData = JSON.parse(decodeURIComponent(userParam));
         setUsername(userData.username || userData.firstName || "Student");
-        localStorage.setItem("username", userData.username || userData.firstName || "Student");
-        localStorage.setItem("userId", userData.id);
+        saveUserSession(userData);
         // Clear the URL parameters
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (error) {
@@ -147,9 +147,8 @@ const Dashboard = () => {
           if (userRes.status === 200) {
             const userData = userRes.data;
             setUsername(userData.user.username || userData.user.firstName || "Student");
-            localStorage.setItem("username", userData.user.username || userData.user.firstName || "Student");
+            saveUserSession(userData.user);
             currentUserId = userData.user.id;
-            localStorage.setItem("userId", userData.user.id);
           }
         } catch (userErr) {
           console.log('Could not fetch user data, using localStorage');

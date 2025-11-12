@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Check, Star, Zap, Crown, Users, Shield, Clock, Sparkles } from 'lucide-react';
 import Navbar from "../components/Navbar";
 import api from '../utils/axios';
+import { saveUserSession } from '../utils/session';
 
 const Pricing = () => {
   const [isYearly, setIsYearly] = useState(false);
@@ -37,8 +38,11 @@ const Pricing = () => {
     try {
       // Get user profile which includes subscription info
       const response = await api.get('/auth/google/success');
-      if (response.status === 200 && response.data.user?.subscription) {
-        setSubscription(response.data.user.subscription);
+      if (response.status === 200 && response.data.user) {
+        saveUserSession(response.data.user);
+        if (response.data.user.subscription) {
+          setSubscription(response.data.user.subscription);
+        }
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);
@@ -66,11 +70,7 @@ const Pricing = () => {
         if (authResponse.status === 200 && authResponse.data.user?.id) {
           userId = authResponse.data.user.id;
           console.log('User ID from API:', userId);
-          // Update localStorage with fresh data
-          localStorage.setItem('userId', userId);
-          if (authResponse.data.user.username) {
-            localStorage.setItem('username', authResponse.data.user.username);
-          }
+          saveUserSession(authResponse.data.user);
         }
       } catch (apiError) {
         console.warn('API auth check failed, using localStorage:', apiError.message);

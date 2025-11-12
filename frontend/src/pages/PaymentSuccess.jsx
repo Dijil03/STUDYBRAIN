@@ -4,6 +4,7 @@ import { CheckCircle, ArrowRight, Home, Crown, Star, Zap, Calendar, CreditCard }
 import { useSearchParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
+import { saveUserSession } from '../utils/session';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -42,6 +43,9 @@ const PaymentSuccess = () => {
       
       const userId = userResponse.data.user?.id;
       const currentSubscription = userResponse.data.user?.subscription;
+      if (userResponse.data.user) {
+        saveUserSession(userResponse.data.user);
+      }
       
       console.log('User ID:', userId);
       console.log('Current subscription:', currentSubscription);

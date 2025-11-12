@@ -50,6 +50,7 @@ const ConceptMastery = lazy(() => import("./pages/ConceptMastery"));
 const FocusGarden = lazy(() => import("./pages/FocusGarden"));
 const StudyGroups = lazy(() => import("./pages/StudyGroups"));
 const StudyGroupDetail = lazy(() => import("./pages/StudyGroupDetail"));
+const Personalization = lazy(() => import("./pages/Personalization"));
 
 const App = () => {
   return (
@@ -63,6 +64,7 @@ const App = () => {
             {/* Public auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/personalize" element={<Personalization />} />
             
             {/* Protected routes */}
             <Route path="/profile" element={<Profile />} />

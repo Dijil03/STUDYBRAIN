@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Crown, Star, Zap, CheckCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
+import { saveUserSession } from '../utils/session';
 
 const TestSubscription = () => {
   const [loading, setLoading] = useState(false);
@@ -85,6 +86,7 @@ const TestSubscription = () => {
       
       if (response.status === 200) {
         const user = response.data.user;
+        saveUserSession(user);
         setResult({
           type: 'success',
           message: 'Profile refreshed successfully!',

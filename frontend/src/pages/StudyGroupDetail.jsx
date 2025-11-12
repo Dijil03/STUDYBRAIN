@@ -6,6 +6,7 @@ import PageSEO from '../components/PageSEO';
 import LoadingSpinner from '../components/LoadingSpinner';
 import InviteShareModal from '../components/InviteShareModal';
 import api from '../utils/axios';
+import { saveUserSession } from '../utils/session';
 import { toast } from 'react-toastify';
 import {
   Users,
@@ -262,9 +263,11 @@ const StudyGroupDetail = () => {
       const storedUsername = localStorage.getItem('username');
       
       if (storedUserId) {
-        setUser({ 
-          id: storedUserId, 
-          username: storedUsername || 'User' 
+        const hasCompleted = localStorage.getItem('hasCompletedPersonalization') === 'true';
+        setUser({
+          id: storedUserId,
+          username: storedUsername || 'User',
+          hasCompletedPersonalization: hasCompleted,
         });
         return;
       }
@@ -273,14 +276,18 @@ const StudyGroupDetail = () => {
       if (response.status === 200) {
         const userData = response.data.user;
         setUser(userData);
-        localStorage.setItem('userId', userData.id);
-        localStorage.setItem('username', userData.username || userData.firstName || 'User');
+        saveUserSession(userData);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       const storedUserId = localStorage.getItem('userId');
       if (storedUserId) {
-        setUser({ id: storedUserId, username: 'User' });
+        const hasCompleted = localStorage.getItem('hasCompletedPersonalization') === 'true';
+        setUser({
+          id: storedUserId,
+          username: 'User',
+          hasCompletedPersonalization: hasCompleted,
+        });
       }
     }
   };

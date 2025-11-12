@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, login, logout, updateAvatar, getUserProfile, googleAuth, googleDocsAuth, googleClassroomAuth, googleCalendarAuth, googleCallback, googleAuthSuccess, googleAuthFailure, debugUserSubscription, uploadAvatar, updateAvatarId, upload } from '../controllers/auth.controller.js';
+import { signup, login, logout, updateAvatar, getUserProfile, googleAuth, googleDocsAuth, googleClassroomAuth, googleCalendarAuth, googleCallback, googleAuthSuccess, googleAuthFailure, debugUserSubscription, uploadAvatar, updateAvatarId, upload, getPersonalization, updatePersonalization } from '../controllers/auth.controller.js';
 import protectRoutes from '../middlewares/protectRoutes.js';
 
 const router = express.Router();
@@ -32,6 +32,9 @@ router.get('/google-calendar', googleCalendarAuth);
 
 router.get('/google/success', protectRoutes, googleAuthSuccess);
 router.get('/google/failure', googleAuthFailure);
+
+router.get('/personalization/:userId', protectRoutes, getPersonalization);
+router.put('/personalization/:userId', protectRoutes, updatePersonalization);
 
 // Debug route
 router.get('/debug/:userId', debugUserSubscription);

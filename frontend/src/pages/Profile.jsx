@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import AvatarManager from '../components/AvatarManager';
 import MotivationalMessage from '../components/MotivationalMessage';
 import api from '../utils/axios';
+import { saveUserSession } from '../utils/session';
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -67,6 +68,7 @@ const Profile = () => {
       if (response.status === 200) {
         const data = response.data;
         setUser(data.user);
+        saveUserSession(data.user);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);

@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../utils/axios';
+import { saveUserSession, clearUserSession } from '../utils/session';
 import AvatarManager from './AvatarManager';
 import { 
   Brain, 
@@ -89,6 +90,20 @@ const Navbar = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (loading) return;
+    if (!user) return;
+
+    const hasCompleted =
+      typeof user.hasCompletedPersonalization === 'boolean'
+        ? user.hasCompletedPersonalization
+        : localStorage.getItem('hasCompletedPersonalization') === 'true';
+
+    if (!hasCompleted && !location.pathname.startsWith('/personalize')) {
+      navigate('/personalize', { replace: true });
+    }
+  }, [user, loading, location.pathname, navigate]);
+
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -128,12 +143,22 @@ const Navbar = () => {
       const username = localStorage.getItem('username');
       
       if (userId && username) {
+        const hasCompletedPersonalization =
+          localStorage.getItem('hasCompletedPersonalization') === 'true';
+        let personalization = undefined;
+        try {
+          personalization = JSON.parse(localStorage.getItem('userPersonalization') || 'null');
+        } catch (error) {
+          personalization = undefined;
+        }
         // Set user from localStorage immediately for faster UI
         setUser({
           id: userId,
           username: username,
           email: localStorage.getItem('userEmail') || '',
-          profilePicture: localStorage.getItem('userAvatar') || ''
+          profilePicture: localStorage.getItem('userAvatar') || '',
+          hasCompletedPersonalization,
+          personalization,
         });
         setLoading(false);
       }
@@ -143,13 +168,9 @@ const Navbar = () => {
         const response = await api.get('/auth/google/success');
         if (response.status === 200 && response.data.user) {
           // Update with full user data from API
-          setUser(response.data.user);
-          // Save to localStorage
-          localStorage.setItem('userId', response.data.user.id);
-          localStorage.setItem('username', response.data.user.username || response.data.user.firstName || 'User');
-          if (response.data.user.email) {
-            localStorage.setItem('userEmail', response.data.user.email);
-          }
+          const apiUser = response.data.user;
+          saveUserSession(apiUser);
+          setUser(apiUser);
         }
       } catch (apiError) {
         // API check failed, but we already have localStorage data
@@ -189,10 +210,7 @@ const Navbar = () => {
       }
       
       // Clear all user data from localStorage
-      localStorage.removeItem('userId');
-      localStorage.removeItem('username');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userAvatar');
+      clearUserSession();
       
       // Clear state
       setUser(null);
@@ -206,10 +224,7 @@ const Navbar = () => {
     } catch (error) {
       console.error('Logout failed:', error);
       // Still clear localStorage even if API call fails
-      localStorage.removeItem('userId');
-      localStorage.removeItem('username');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userAvatar');
+      clearUserSession();
       setUser(null);
       navigate('/login');
     }

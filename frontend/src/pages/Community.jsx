@@ -25,6 +25,7 @@ import Navbar from '../components/Navbar';
 import api from '../utils/axios';
 import FeatureGate from '../components/FeatureGate';
 import { FEATURES } from '../utils/featureGate';
+import { saveUserSession } from '../utils/session';
 
 const Community = () => {
   const [users, setUsers] = useState([]);
@@ -47,6 +48,7 @@ const Community = () => {
       const userResponse = await api.get('/auth/google/success');
       if (userResponse.status === 200) {
         setCurrentUser(userResponse.data.user);
+        saveUserSession(userResponse.data.user);
       }
 
       // Fetch community rankings

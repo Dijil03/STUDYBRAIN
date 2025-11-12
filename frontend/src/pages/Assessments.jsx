@@ -40,6 +40,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { saveUserSession } from '../utils/session';
 
 const Assessments = () => {
   const [user, setUser] = useState(null);
@@ -77,21 +78,19 @@ const Assessments = () => {
           const userData = response.data.user;
           userId = userData.id || userId;
           setUser(userData);
-          
-          // Store in localStorage for future use
-          if (userData.id) {
-            localStorage.setItem('userId', userData.id);
-          }
-          if (userData.username) {
-            localStorage.setItem('username', userData.username);
-          }
+          saveUserSession(userData);
         }
       } catch (apiError) {
         console.warn('API auth check failed, using localStorage:', apiError.message);
         
         // If we have userId from localStorage, create a minimal user object
         if (userId) {
-          setUser({ id: userId, username: localStorage.getItem('username') || 'User' });
+          const hasCompleted = localStorage.getItem('hasCompletedPersonalization') === 'true';
+          setUser({
+            id: userId,
+            username: localStorage.getItem('username') || 'User',
+            hasCompletedPersonalization: hasCompleted,
+          });
         }
       }
       
@@ -109,7 +108,12 @@ const Assessments = () => {
       // Try to use localStorage as fallback
       const userId = localStorage.getItem('userId');
       if (userId) {
-        setUser({ id: userId, username: localStorage.getItem('username') || 'User' });
+        const hasCompleted = localStorage.getItem('hasCompletedPersonalization') === 'true';
+        setUser({
+          id: userId,
+          username: localStorage.getItem('username') || 'User',
+          hasCompletedPersonalization: hasCompleted,
+        });
         fetchAssessments(userId);
       }
     } finally {
