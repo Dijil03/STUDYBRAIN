@@ -48,6 +48,8 @@ const Calendar = lazy(() => import("./pages/Calendar"));
 const RevisionScheduler = lazy(() => import("./pages/RevisionScheduler"));
 const ConceptMastery = lazy(() => import("./pages/ConceptMastery"));
 const FocusGarden = lazy(() => import("./pages/FocusGarden"));
+const StudyGroups = lazy(() => import("./pages/StudyGroups"));
+const StudyGroupDetail = lazy(() => import("./pages/StudyGroupDetail"));
 
 const App = () => {
   return (
@@ -102,7 +104,9 @@ const App = () => {
             <Route path="/revisions" element={<RevisionScheduler />} />
             <Route path="/concept-map" element={<ConceptMastery />} />
             <Route path="/focus-garden" element={<FocusGarden />} />
-            <Route path="/study-groups" element={<JoinViaInvite />} />
+            <Route path="/study-groups" element={<StudyGroups />} />
+            <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
+            <Route path="/study-groups/invite/:inviteToken" element={<JoinViaInvite />} />
             </Routes>
             </Suspense>
         </ThemeWrapper>
