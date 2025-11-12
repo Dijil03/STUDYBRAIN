@@ -44,7 +44,7 @@ const getDefaultRecommendations = () => ({
   ],
 });
 
-export const getLearningPattern = (req, res) => {
+const getLearningPattern = (req, res) => {
   try {
     const { userId } = req.params;
     if (!userId) {
@@ -71,7 +71,7 @@ export const getLearningPattern = (req, res) => {
   }
 };
 
-export const getStudyMaterials = (req, res) => {
+const getStudyMaterials = (req, res) => {
   try {
     const { userId } = req.query;
     if (!userId) {
@@ -98,7 +98,7 @@ export const getStudyMaterials = (req, res) => {
   }
 };
 
-export const generateStudyMaterial = (req, res) => {
+const generateStudyMaterial = (req, res) => {
   try {
     const {
       userId,
@@ -142,7 +142,7 @@ export const generateStudyMaterial = (req, res) => {
   }
 };
 
-export const getRecommendations = (req, res) => {
+const getRecommendations = (req, res) => {
   try {
     const { userId } = req.params;
     if (!userId) {
@@ -169,7 +169,7 @@ export const getRecommendations = (req, res) => {
   }
 };
 
-export const createTutorSession = (req, res) => {
+const createTutorSession = (req, res) => {
   try {
     const {
       userId = 'anonymous',
@@ -218,7 +218,7 @@ export const createTutorSession = (req, res) => {
   }
 };
 
-export const sendTutorMessage = (req, res) => {
+const sendTutorMessage = (req, res) => {
   try {
     const {
       sessionId,
@@ -294,7 +294,16 @@ export const sendTutorMessage = (req, res) => {
   }
 };
 
-export const endTutorSession = (req, res) => {
+const endTutorSession = (req, res) => {
+export {
+  getLearningPattern,
+  getStudyMaterials,
+  generateStudyMaterial,
+  getRecommendations,
+  createTutorSession,
+  sendTutorMessage,
+  endTutorSession,
+};
   try {
     const { sessionId, rating = 5 } = req.body;
     if (!sessionId) {
