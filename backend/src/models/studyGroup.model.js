@@ -274,8 +274,21 @@ studyGroupSchema.methods.getInviteLink = function () {
     return null;
   }
 
-  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  return `${baseUrl}/study-groups/join/${this.inviteToken}`;
+  const potentialUrls = [
+    process.env.STUDYBRAIN_APP_URL,
+    process.env.APP_URL,
+    process.env.PUBLIC_APP_URL,
+    process.env.CLIENT_URL,
+    process.env.FRONTEND_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  ].filter(Boolean);
+
+  const defaultUrl = process.env.NODE_ENV === 'production'
+    ? 'https://studybrain.vercel.app'
+    : 'http://localhost:5173';
+
+  const baseUrl = (potentialUrls[0] || defaultUrl).replace(/\/$/, '');
+  return `${baseUrl}/study-groups/invite/${this.inviteToken}`;
 };
 
 const StudyGroup = mongoose.model('StudyGroup', studyGroupSchema);
