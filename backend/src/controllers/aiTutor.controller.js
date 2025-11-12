@@ -1,9 +1,35 @@
+import { OpenAI } from "openai";
 import { v4 as uuidv4 } from 'uuid';
 
 const userPatterns = new Map();
 const userMaterials = new Map();
 const userRecommendations = new Map();
 const tutorSessions = new Map();
+
+let tutorClient = null;
+const getTutorClient = () => {
+  if (!tutorClient) {
+    const hfToken = process.env.HF_TOKEN;
+    if (!hfToken) {
+      throw new Error('HF_TOKEN environment variable is not set. Please add HF_TOKEN to your Render environment variables.');
+    }
+    const originalKey = process.env.OPENAI_API_KEY;
+    try {
+      process.env.OPENAI_API_KEY = hfToken;
+      tutorClient = new OpenAI({
+        baseURL: "https://router.huggingface.co/v1",
+        apiKey: hfToken,
+      });
+    } finally {
+      if (originalKey) {
+        process.env.OPENAI_API_KEY = originalKey;
+      } else {
+        delete process.env.OPENAI_API_KEY;
+      }
+    }
+  }
+  return tutorClient;
+};
 
 const getDefaultPattern = () => ({
   performance: {
@@ -98,7 +124,7 @@ const getStudyMaterials = (req, res) => {
   }
 };
 
-const generateStudyMaterial = (req, res) => {
+const generateStudyMaterial = async (req, res) => {
   try {
     const {
       userId,
@@ -115,6 +141,32 @@ const generateStudyMaterial = (req, res) => {
       });
     }
 
+    const client = getTutorClient();
+    const materialPrompt = `You are Brain's AI tutor creating ${materialType.replace('_', ' ')} materials.
+Subject: ${subject}
+Topic: ${topic}
+Learner difficulty: ${difficulty}
+
+Produce structured output with:
+1. Key concepts (bullet list)
+2. Step-by-step explanation
+3. Practical example or scenario
+4. Quick quiz or reflection question
+5. Suggested next steps`;
+
+    const completion = await client.chat.completions.create({
+      model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
+      messages: [
+        { role: 'system', content: 'You craft concise, student-friendly study aids.' },
+        { role: 'user', content: materialPrompt },
+      ],
+      max_tokens: 800,
+      temperature: 0.7,
+    });
+
+    const generatedContent = completion.choices?.[0]?.message?.content?.trim() ??
+      'Study material could not be generated at this time.';
+
     const material = {
       id: uuidv4(),
       title: `${topic} - ${materialType.replace('_', ' ')}`,
@@ -122,6 +174,7 @@ const generateStudyMaterial = (req, res) => {
       subject,
       difficulty,
       createdAt: new Date(),
+      content: generatedContent,
     };
 
     if (!userMaterials.has(userId)) {
@@ -218,7 +271,7 @@ const createTutorSession = (req, res) => {
   }
 };
 
-const sendTutorMessage = (req, res) => {
+const sendTutorMessage = async (req, res) => {
   try {
     const {
       sessionId,
@@ -243,7 +296,6 @@ const sendTutorMessage = (req, res) => {
       });
     }
 
-    // Store user message
     session.messages.push({
       role: 'user',
       content: message,
@@ -253,8 +305,24 @@ const sendTutorMessage = (req, res) => {
     session.stats.totalMessages += 1;
     session.stats.questionsAsked += 1;
 
-    // Generate a playful AI response
-    const aiResponse = `Great question! Here's a helpful tip about ${topic.toLowerCase()}:\n\n• Focus on the key concepts first.\n• Practice with example problems.\n• Teach the concept to someone else to test your understanding.\n\nWould you like a summary, practice questions, or a concept map next?`;
+    const client = getTutorClient();
+    const systemPrompt = `You are Brain's personalised AI tutor. Tailor explanations to the learner's subject focus (${subject}) and current topic (${topic}).
+Provide step-by-step guidance, encourage active recall, and end with a friendly follow-up question or suggested next action.`;
+
+    const messagesForAI = [
+      { role: 'system', content: systemPrompt },
+      ...session.messages.map((msg) => ({ role: msg.role, content: msg.content })),
+    ];
+
+    const completion = await client.chat.completions.create({
+      model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
+      messages: messagesForAI,
+      max_tokens: 600,
+      temperature: 0.65,
+    });
+
+    const aiResponse = completion.choices?.[0]?.message?.content?.trim() ??
+      "I'm still thinking about that. Could you rephrase the question?";
 
     const aiMessage = {
       role: 'assistant',
