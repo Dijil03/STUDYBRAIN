@@ -2,23 +2,21 @@ import { OpenAI } from "openai";
 import AIChat from '../models/ai.model.js';
 import { v4 as uuidv4 } from 'uuid';
 
-// Get the best available model for AI assistant
-const getAIModel = () => {
+// Get list of models to try (in order of preference)
+const getAIModels = () => {
   // Priority: Environment variable > High-quality models > Fallback
   if (process.env.AI_MODEL) {
-    return process.env.AI_MODEL;
+    return [process.env.AI_MODEL, 'deepseek-ai/DeepSeek-V3.2-Exp:novita'];
   }
   
   // Try high-quality models (in order of preference)
-  const preferredModels = [
-    'openai/gpt-oss-120b',  // User's preferred model (if available via router)
+  return [
     'meta-llama/Llama-3.1-70B-Instruct',  // High-quality, widely available
     'mistralai/Mixtral-8x7B-Instruct-v0.1', // Excellent for instruction following
     'Qwen/Qwen2.5-72B-Instruct', // Strong reasoning capabilities
-    'deepseek-ai/DeepSeek-V3.2-Exp:novita', // Current fallback
+    'openai/gpt-oss-120b',  // User's preferred model (may not be available via router)
+    'deepseek-ai/DeepSeek-V3.2-Exp:novita', // Reliable fallback
   ];
-  
-  return preferredModels[0]; // Use the first available
 };
 
 // Lazy initialization of OpenAI client with Hugging Face
@@ -38,7 +36,7 @@ const getClient = () => {
       // Temporarily set OPENAI_API_KEY to prevent library error
       process.env.OPENAI_API_KEY = hfToken;
       client = new OpenAI({
-  baseURL: "https://router.huggingface.co/v1",
+        baseURL: "https://router.huggingface.co/v1",
         apiKey: hfToken,
       });
     } finally {
@@ -107,8 +105,8 @@ export const sendMessage = async (req, res) => {
     }
 
     const { sessionId, message, model: requestedModel } = req.body;
-    // Use requested model or get the best available model
-    const model = requestedModel || getAIModel();
+    // Use requested model or get list of models to try
+    const modelsToTry = requestedModel ? [requestedModel, 'deepseek-ai/DeepSeek-V3.2-Exp:novita'] : getAIModels();
 
     if (!sessionId || !message) {
       return res.status(400).json({
@@ -158,27 +156,35 @@ export const sendMessage = async (req, res) => {
     // Check if client is available
     const aiClient = getClient();
 
-    // Create streaming completion with fallback
+    // Create streaming completion - try each model in sequence until one works
     let stream;
-    try {
-      stream = await aiClient.chat.completions.create({
-        model,
-        messages: messagesForAI,
-        max_tokens: 1200,
-        temperature: 0.7,
-        stream: true
-      });
-    } catch (modelError) {
-      // Fallback to a more reliable model if the preferred one fails
-      console.warn(`Model ${model} failed, trying fallback:`, modelError.message);
-      const fallbackModel = 'deepseek-ai/DeepSeek-V3.2-Exp:novita';
-      stream = await aiClient.chat.completions.create({
-        model: fallbackModel,
-        messages: messagesForAI,
-        max_tokens: 1200,
-        temperature: 0.7,
-        stream: true
-      });
+    let lastError = null;
+    let usedModel = null;
+    
+    for (const model of modelsToTry) {
+      try {
+        console.log(`🤖 AI Assistant: Trying model: ${model}`);
+        stream = await aiClient.chat.completions.create({
+          model,
+          messages: messagesForAI,
+          max_tokens: 1200,
+          temperature: 0.7,
+          stream: true
+        });
+        usedModel = model;
+        console.log(`✅ AI Assistant: Successfully using model: ${model}`);
+        break; // Success, exit the loop
+      } catch (modelError) {
+        lastError = modelError;
+        console.warn(`⚠️ AI Assistant: Model ${model} failed:`, modelError.message);
+        // Continue to next model
+      }
+    }
+    
+    // If all models failed, throw the last error
+    if (!stream) {
+      console.error(`❌ AI Assistant: All models failed. Last error:`, lastError?.message);
+      throw lastError || new Error('All AI models failed');
     }
 
     // Process the stream
@@ -232,13 +238,13 @@ export const sendMessage = async (req, res) => {
         helpUrl: 'https://huggingface.co/settings/tokens'
       })}\n\n`);
     } else {
-    // Send error in streaming format
-    res.write(`data: ${JSON.stringify({
-      type: 'error',
-      content: 'Sorry, I encountered an error. Please try again.',
-      isComplete: true,
-      error: error.message
-    })}\n\n`);
+      // Send error in streaming format
+      res.write(`data: ${JSON.stringify({
+        type: 'error',
+        content: 'Sorry, I encountered an error. Please try again.',
+        isComplete: true,
+        error: error.message
+      })}\n\n`);
     }
 
     res.end();
@@ -563,7 +569,7 @@ Generate ${numQuestions} well-crafted questions now:`;
 
   } catch (error) {
     console.error('Error generating assessment:', error);
-    
+
     // Check if it's a missing token error
     if (error.message.includes('HF_TOKEN') || error.message.includes('OPENAI_API_KEY')) {
       return res.status(503).json({
@@ -572,7 +578,7 @@ Generate ${numQuestions} well-crafted questions now:`;
         error: 'Missing HF_TOKEN environment variable'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to generate assessment',

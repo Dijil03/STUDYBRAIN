@@ -6,23 +6,21 @@ const userMaterials = new Map();
 const userRecommendations = new Map();
 const tutorSessions = new Map();
 
-// Get the best available model for tutoring
-const getTutorModel = () => {
+// Get list of models to try (in order of preference)
+const getTutorModels = () => {
   // Priority: Environment variable > High-quality models > Fallback
   if (process.env.AI_TUTOR_MODEL) {
-    return process.env.AI_TUTOR_MODEL;
+    return [process.env.AI_TUTOR_MODEL, 'deepseek-ai/DeepSeek-V3.2-Exp:novita'];
   }
   
   // Try high-quality models (in order of preference)
-  const preferredModels = [
-    'openai/gpt-oss-120b',  // User's preferred model (if available via router)
+  return [
     'meta-llama/Llama-3.1-70B-Instruct',  // High-quality, widely available
     'mistralai/Mixtral-8x7B-Instruct-v0.1', // Excellent for instruction following
     'Qwen/Qwen2.5-72B-Instruct', // Strong reasoning capabilities
-    'deepseek-ai/DeepSeek-V3.2-Exp:novita', // Current fallback
+    'openai/gpt-oss-120b',  // User's preferred model (may not be available via router)
+    'deepseek-ai/DeepSeek-V3.2-Exp:novita', // Reliable fallback
   ];
-  
-  return preferredModels[0]; // Use the first available
 };
 
 let tutorClient = null;
@@ -173,32 +171,38 @@ Produce structured output with:
 4. Quick quiz or reflection question
 5. Suggested next steps`;
 
-    const model = getTutorModel();
+    const modelsToTry = getTutorModels();
     let completion;
+    let lastError = null;
+    let usedModel = null;
     
-    try {
-      completion = await client.chat.completions.create({
-        model,
-        messages: [
-          { role: 'system', content: 'You craft concise, student-friendly study aids.' },
-          { role: 'user', content: materialPrompt },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-      });
-    } catch (modelError) {
-      // Fallback to a more reliable model if the preferred one fails
-      console.warn(`Model ${model} failed, trying fallback:`, modelError.message);
-      const fallbackModel = 'deepseek-ai/DeepSeek-V3.2-Exp:novita';
-      completion = await client.chat.completions.create({
-        model: fallbackModel,
-        messages: [
-          { role: 'system', content: 'You craft concise, student-friendly study aids.' },
-          { role: 'user', content: materialPrompt },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-      });
+    // Try each model in sequence until one works
+    for (const model of modelsToTry) {
+      try {
+        console.log(`🤖 AI Tutor (Materials): Trying model: ${model}`);
+        completion = await client.chat.completions.create({
+          model,
+          messages: [
+            { role: 'system', content: 'You craft concise, student-friendly study aids.' },
+            { role: 'user', content: materialPrompt },
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+        });
+        usedModel = model;
+        console.log(`✅ AI Tutor (Materials): Successfully using model: ${model}`);
+        break; // Success, exit the loop
+      } catch (modelError) {
+        lastError = modelError;
+        console.warn(`⚠️ AI Tutor (Materials): Model ${model} failed:`, modelError.message);
+        // Continue to next model
+      }
+    }
+    
+    // If all models failed, throw the last error
+    if (!completion) {
+      console.error(`❌ AI Tutor (Materials): All models failed. Last error:`, lastError?.message);
+      throw lastError || new Error('All AI models failed');
     }
 
     const generatedContent = completion.choices?.[0]?.message?.content?.trim() ??
@@ -351,26 +355,35 @@ Provide step-by-step guidance, encourage active recall, and end with a friendly 
       ...session.messages.map((msg) => ({ role: msg.role, content: msg.content })),
     ];
 
-    const model = getTutorModel();
+    const modelsToTry = getTutorModels();
     let completion;
+    let lastError = null;
+    let usedModel = null;
     
-    try {
-      completion = await client.chat.completions.create({
-        model,
-        messages: messagesForAI,
-        max_tokens: 800,
-        temperature: 0.65,
-      });
-    } catch (modelError) {
-      // Fallback to a more reliable model if the preferred one fails
-      console.warn(`Model ${model} failed, trying fallback:`, modelError.message);
-      const fallbackModel = 'deepseek-ai/DeepSeek-V3.2-Exp:novita';
-      completion = await client.chat.completions.create({
-        model: fallbackModel,
-        messages: messagesForAI,
-        max_tokens: 800,
-        temperature: 0.65,
-      });
+    // Try each model in sequence until one works
+    for (const model of modelsToTry) {
+      try {
+        console.log(`🤖 AI Tutor: Trying model: ${model}`);
+        completion = await client.chat.completions.create({
+          model,
+          messages: messagesForAI,
+          max_tokens: 800,
+          temperature: 0.65,
+        });
+        usedModel = model;
+        console.log(`✅ AI Tutor: Successfully using model: ${model}`);
+        break; // Success, exit the loop
+      } catch (modelError) {
+        lastError = modelError;
+        console.warn(`⚠️ AI Tutor: Model ${model} failed:`, modelError.message);
+        // Continue to next model
+      }
+    }
+    
+    // If all models failed, throw the last error
+    if (!completion) {
+      console.error(`❌ AI Tutor: All models failed. Last error:`, lastError?.message);
+      throw lastError || new Error('All AI models failed');
     }
 
     const aiResponse = completion.choices?.[0]?.message?.content?.trim() ??
