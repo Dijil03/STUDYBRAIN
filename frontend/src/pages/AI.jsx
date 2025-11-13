@@ -409,48 +409,61 @@ const AI = () => {
                                     components={{
                                         // Render LaTeX math in paragraphs and text
                                         p({ children }) {
-                                            // Safely extract text from children
-                                            const extractText = (children) => {
-                                                return React.Children.toArray(children).map(child => {
-                                                    if (typeof child === 'string' || typeof child === 'number') {
-                                                        return String(child);
+                                            // Process children recursively to find and render LaTeX in strings only
+                                            const processChildren = (children, key = 0) => {
+                                                if (children === null || children === undefined) return null;
+                                                
+                                                // If it's a string, process it for LaTeX
+                                                if (typeof children === 'string') {
+                                                    const parts = [];
+                                                    let lastIndex = 0;
+                                                    const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                                                    let match;
+                                                    
+                                                    while ((match = inlineRegex.exec(children)) !== null) {
+                                                        if (match.index > lastIndex) {
+                                                            parts.push(children.slice(lastIndex, match.index));
+                                                        }
+                                                        try {
+                                                            parts.push(<InlineMath key={`math-${key}-${match.index}`} math={match[1]} />);
+                                                        } catch (e) {
+                                                            parts.push(match[0]);
+                                                        }
+                                                        lastIndex = match.index + match[0].length;
                                                     }
-                                                    if (React.isValidElement(child) && child.props && child.props.children) {
-                                                        return extractText(child.props.children);
+                                                    
+                                                    if (lastIndex < children.length) {
+                                                        parts.push(children.slice(lastIndex));
                                                     }
-                                                    return '';
-                                                }).join('');
+                                                    
+                                                    return parts.length > 1 ? parts : children;
+                                                }
+                                                
+                                                // If it's a number, convert to string
+                                                if (typeof children === 'number') {
+                                                    return String(children);
+                                                }
+                                                
+                                                // If it's an array, process each element
+                                                if (Array.isArray(children)) {
+                                                    return children.map((child, idx) => processChildren(child, `${key}-${idx}`));
+                                                }
+                                                
+                                                // If it's a React element, clone it and process its children
+                                                if (React.isValidElement(children)) {
+                                                    const processedChildren = processChildren(children.props.children, key);
+                                                    return React.cloneElement(children, {
+                                                        key: children.key || key,
+                                                        children: processedChildren
+                                                    });
+                                                }
+                                                
+                                                // For anything else, return null (don't render objects)
+                                                return null;
                                             };
                                             
-                                            const text = extractText(children);
-                                            // Match inline math \( ... \) and block math \[ ... \]
-                                            const parts = [];
-                                            let lastIndex = 0;
-                                            
-                                            // Match inline math \( ... \)
-                                            const inlineRegex = /\\\(([^\\]+?)\\\)/g;
-                                            let match;
-                                            
-                                            while ((match = inlineRegex.exec(text)) !== null) {
-                                                // Add text before the match
-                                                if (match.index > lastIndex) {
-                                                    parts.push(text.slice(lastIndex, match.index));
-                                                }
-                                                // Add the math component
-                                                try {
-                                                    parts.push(<InlineMath key={match.index} math={match[1]} />);
-                                                } catch (e) {
-                                                    parts.push(match[0]); // Fallback to raw text if parsing fails
-                                                }
-                                                lastIndex = match.index + match[0].length;
-                                            }
-                                            
-                                            // Add remaining text
-                                            if (lastIndex < text.length) {
-                                                parts.push(text.slice(lastIndex));
-                                            }
-                                            
-                                            return <p>{parts.length > 0 && text ? parts : children}</p>;
+                                            const processed = processChildren(children);
+                                            return <p>{processed !== null ? processed : children}</p>;
                                         },
                                         // Render block math in code blocks or separate blocks
                                         code({ node, inline, className, children, ...props }) {
@@ -483,88 +496,104 @@ const AI = () => {
                                             );
                                         },
                                         th({ children }) {
-                                            // Safely extract text from children
-                                            const extractText = (children) => {
-                                                return React.Children.toArray(children).map(child => {
-                                                    if (typeof child === 'string' || typeof child === 'number') {
-                                                        return String(child);
+                                            // Process children recursively to find and render LaTeX in strings only
+                                            const processChildren = (children, key = 0) => {
+                                                if (children === null || children === undefined) return null;
+                                                
+                                                if (typeof children === 'string') {
+                                                    const parts = [];
+                                                    let lastIndex = 0;
+                                                    const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                                                    let match;
+                                                    
+                                                    while ((match = inlineRegex.exec(children)) !== null) {
+                                                        if (match.index > lastIndex) {
+                                                            parts.push(children.slice(lastIndex, match.index));
+                                                        }
+                                                        try {
+                                                            parts.push(<InlineMath key={`math-${key}-${match.index}`} math={match[1]} />);
+                                                        } catch (e) {
+                                                            parts.push(match[0]);
+                                                        }
+                                                        lastIndex = match.index + match[0].length;
                                                     }
-                                                    if (React.isValidElement(child) && child.props && child.props.children) {
-                                                        return extractText(child.props.children);
+                                                    
+                                                    if (lastIndex < children.length) {
+                                                        parts.push(children.slice(lastIndex));
                                                     }
-                                                    return '';
-                                                }).join('');
+                                                    
+                                                    return parts.length > 1 ? parts : children;
+                                                }
+                                                
+                                                if (typeof children === 'number') return String(children);
+                                                if (Array.isArray(children)) {
+                                                    return children.map((child, idx) => processChildren(child, `${key}-${idx}`));
+                                                }
+                                                if (React.isValidElement(children)) {
+                                                    const processedChildren = processChildren(children.props.children, key);
+                                                    return React.cloneElement(children, {
+                                                        key: children.key || key,
+                                                        children: processedChildren
+                                                    });
+                                                }
+                                                return null;
                                             };
                                             
-                                            const text = extractText(children);
-                                            const parts = [];
-                                            let lastIndex = 0;
-                                            
-                                            const inlineRegex = /\\\(([^\\]+?)\\\)/g;
-                                            let match;
-                                            
-                                            while ((match = inlineRegex.exec(text)) !== null) {
-                                                if (match.index > lastIndex) {
-                                                    parts.push(text.slice(lastIndex, match.index));
-                                                }
-                                                try {
-                                                    parts.push(<InlineMath key={match.index} math={match[1]} />);
-                                                } catch (e) {
-                                                    parts.push(match[0]);
-                                                }
-                                                lastIndex = match.index + match[0].length;
-                                            }
-                                            
-                                            if (lastIndex < text.length) {
-                                                parts.push(text.slice(lastIndex));
-                                            }
-                                            
+                                            const processed = processChildren(children);
                                             return (
                                                 <th className="border-b border-gray-700 px-4 py-3 bg-gray-800/90 font-semibold text-left text-gray-100 text-sm sticky top-0 z-10">
-                                                    {parts.length > 0 && text ? parts : children}
+                                                    {processed !== null ? processed : children}
                                                 </th>
                                             );
                                         },
                                         td({ children }) {
-                                            // Safely extract text from children
-                                            const extractText = (children) => {
-                                                return React.Children.toArray(children).map(child => {
-                                                    if (typeof child === 'string' || typeof child === 'number') {
-                                                        return String(child);
+                                            // Process children recursively to find and render LaTeX in strings only
+                                            const processChildren = (children, key = 0) => {
+                                                if (children === null || children === undefined) return null;
+                                                
+                                                if (typeof children === 'string') {
+                                                    const parts = [];
+                                                    let lastIndex = 0;
+                                                    const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                                                    let match;
+                                                    
+                                                    while ((match = inlineRegex.exec(children)) !== null) {
+                                                        if (match.index > lastIndex) {
+                                                            parts.push(children.slice(lastIndex, match.index));
+                                                        }
+                                                        try {
+                                                            parts.push(<InlineMath key={`math-${key}-${match.index}`} math={match[1]} />);
+                                                        } catch (e) {
+                                                            parts.push(match[0]);
+                                                        }
+                                                        lastIndex = match.index + match[0].length;
                                                     }
-                                                    if (React.isValidElement(child) && child.props && child.props.children) {
-                                                        return extractText(child.props.children);
+                                                    
+                                                    if (lastIndex < children.length) {
+                                                        parts.push(children.slice(lastIndex));
                                                     }
-                                                    return '';
-                                                }).join('');
+                                                    
+                                                    return parts.length > 1 ? parts : children;
+                                                }
+                                                
+                                                if (typeof children === 'number') return String(children);
+                                                if (Array.isArray(children)) {
+                                                    return children.map((child, idx) => processChildren(child, `${key}-${idx}`));
+                                                }
+                                                if (React.isValidElement(children)) {
+                                                    const processedChildren = processChildren(children.props.children, key);
+                                                    return React.cloneElement(children, {
+                                                        key: children.key || key,
+                                                        children: processedChildren
+                                                    });
+                                                }
+                                                return null;
                                             };
                                             
-                                            const text = extractText(children);
-                                            const parts = [];
-                                            let lastIndex = 0;
-                                            
-                                            const inlineRegex = /\\\(([^\\]+?)\\\)/g;
-                                            let match;
-                                            
-                                            while ((match = inlineRegex.exec(text)) !== null) {
-                                                if (match.index > lastIndex) {
-                                                    parts.push(text.slice(lastIndex, match.index));
-                                                }
-                                                try {
-                                                    parts.push(<InlineMath key={match.index} math={match[1]} />);
-                                                } catch (e) {
-                                                    parts.push(match[0]);
-                                                }
-                                                lastIndex = match.index + match[0].length;
-                                            }
-                                            
-                                            if (lastIndex < text.length) {
-                                                parts.push(text.slice(lastIndex));
-                                            }
-                                            
+                                            const processed = processChildren(children);
                                             return (
                                                 <td className="border-b border-gray-700/50 px-4 py-3 text-gray-200 text-sm align-top">
-                                                    <div className="max-w-md">{parts.length > 0 && text ? parts : children}</div>
+                                                    <div className="max-w-md">{processed !== null ? processed : children}</div>
                                                 </td>
                                             );
                                         },
