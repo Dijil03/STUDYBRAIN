@@ -4,6 +4,7 @@ import ThemeWrapper from "./components/ThemeWrapper";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LoadingSkeleton from "./components/LoadingSkeleton";
 import SEOProvider from "./components/SEOProvider";
+import FloatingAICoach from "./components/FloatingAICoach";
 import JoinViaInvite from "./pages/JoinViaInvite";
 
 // Lazy load all pages for better performance
@@ -113,6 +114,7 @@ const App = () => {
             <Route path="/analytics" element={<Analytics />} />
             </Routes>
             </Suspense>
+            <FloatingAICoach />
         </ThemeWrapper>
       </ErrorBoundary>
     </SEOProvider>
