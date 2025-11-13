@@ -493,19 +493,53 @@ const AITutor = ({ onClose }) => {
                             if (typeof children === 'string') {
                               const parts = [];
                               let lastIndex = 0;
-                              const inlineRegex = /\\\(([^\\]+?)\\\)/g;
-                              let match;
                               
-                              while ((match = inlineRegex.exec(children)) !== null) {
+                              // Handle block math \[ ... \] or [ ... ] (only if it contains backslash, indicating LaTeX)
+                              const blockRegex = /\\\[([\s\S]*?)\\\]|\[([\s\S]*?\\[^\]]*?)\]/g;
+                              let blockMatch;
+                              const blockMatches = [];
+                              
+                              while ((blockMatch = blockRegex.exec(children)) !== null) {
+                                blockMatches.push({
+                                  index: blockMatch.index,
+                                  length: blockMatch[0].length,
+                                  content: blockMatch[1] || blockMatch[2],
+                                  isBlock: true
+                                });
+                              }
+                              
+                              // Handle inline math \( ... \)
+                              const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                              let inlineMatch;
+                              const inlineMatches = [];
+                              
+                              while ((inlineMatch = inlineRegex.exec(children)) !== null) {
+                                inlineMatches.push({
+                                  index: inlineMatch.index,
+                                  length: inlineMatch[0].length,
+                                  content: inlineMatch[1],
+                                  isBlock: false
+                                });
+                              }
+                              
+                              // Combine and sort all matches
+                              const allMatches = [...blockMatches, ...inlineMatches].sort((a, b) => a.index - b.index);
+                              
+                              // Process matches
+                              for (const match of allMatches) {
                                 if (match.index > lastIndex) {
                                   parts.push(children.slice(lastIndex, match.index));
                                 }
                                 try {
-                                  parts.push(<InlineMath key={`math-${key}-${match.index}`} math={match[1]} />);
+                                  if (match.isBlock) {
+                                    parts.push(<BlockMath key={`block-math-${key}-${match.index}`} math={match.content.trim()} />);
+                                  } else {
+                                    parts.push(<InlineMath key={`inline-math-${key}-${match.index}`} math={match.content.trim()} />);
+                                  }
                                 } catch (e) {
-                                  parts.push(match[0]);
+                                  parts.push(match.isBlock ? `[${match.content}]` : `\\(${match.content}\\)`);
                                 }
-                                lastIndex = match.index + match[0].length;
+                                lastIndex = match.index + match.length;
                               }
                               
                               if (lastIndex < children.length) {
@@ -586,19 +620,53 @@ const AITutor = ({ onClose }) => {
                             if (typeof children === 'string') {
                               const parts = [];
                               let lastIndex = 0;
-                              const inlineRegex = /\\\(([^\\]+?)\\\)/g;
-                              let match;
                               
-                              while ((match = inlineRegex.exec(children)) !== null) {
+                              // Handle block math \[ ... \] or [ ... ] (only if it contains backslash, indicating LaTeX)
+                              const blockRegex = /\\\[([\s\S]*?)\\\]|\[([\s\S]*?\\[^\]]*?)\]/g;
+                              let blockMatch;
+                              const blockMatches = [];
+                              
+                              while ((blockMatch = blockRegex.exec(children)) !== null) {
+                                blockMatches.push({
+                                  index: blockMatch.index,
+                                  length: blockMatch[0].length,
+                                  content: blockMatch[1] || blockMatch[2],
+                                  isBlock: true
+                                });
+                              }
+                              
+                              // Handle inline math \( ... \)
+                              const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                              let inlineMatch;
+                              const inlineMatches = [];
+                              
+                              while ((inlineMatch = inlineRegex.exec(children)) !== null) {
+                                inlineMatches.push({
+                                  index: inlineMatch.index,
+                                  length: inlineMatch[0].length,
+                                  content: inlineMatch[1],
+                                  isBlock: false
+                                });
+                              }
+                              
+                              // Combine and sort all matches
+                              const allMatches = [...blockMatches, ...inlineMatches].sort((a, b) => a.index - b.index);
+                              
+                              // Process matches
+                              for (const match of allMatches) {
                                 if (match.index > lastIndex) {
                                   parts.push(children.slice(lastIndex, match.index));
                                 }
                                 try {
-                                  parts.push(<InlineMath key={`math-${key}-${match.index}`} math={match[1]} />);
+                                  if (match.isBlock) {
+                                    parts.push(<BlockMath key={`block-math-${key}-${match.index}`} math={match.content.trim()} />);
+                                  } else {
+                                    parts.push(<InlineMath key={`inline-math-${key}-${match.index}`} math={match.content.trim()} />);
+                                  }
                                 } catch (e) {
-                                  parts.push(match[0]);
+                                  parts.push(match.isBlock ? `[${match.content}]` : `\\(${match.content}\\)`);
                                 }
-                                lastIndex = match.index + match[0].length;
+                                lastIndex = match.index + match.length;
                               }
                               
                               if (lastIndex < children.length) {
@@ -637,19 +705,53 @@ const AITutor = ({ onClose }) => {
                             if (typeof children === 'string') {
                               const parts = [];
                               let lastIndex = 0;
-                              const inlineRegex = /\\\(([^\\]+?)\\\)/g;
-                              let match;
                               
-                              while ((match = inlineRegex.exec(children)) !== null) {
+                              // Handle block math \[ ... \] or [ ... ] (only if it contains backslash, indicating LaTeX)
+                              const blockRegex = /\\\[([\s\S]*?)\\\]|\[([\s\S]*?\\[^\]]*?)\]/g;
+                              let blockMatch;
+                              const blockMatches = [];
+                              
+                              while ((blockMatch = blockRegex.exec(children)) !== null) {
+                                blockMatches.push({
+                                  index: blockMatch.index,
+                                  length: blockMatch[0].length,
+                                  content: blockMatch[1] || blockMatch[2],
+                                  isBlock: true
+                                });
+                              }
+                              
+                              // Handle inline math \( ... \)
+                              const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                              let inlineMatch;
+                              const inlineMatches = [];
+                              
+                              while ((inlineMatch = inlineRegex.exec(children)) !== null) {
+                                inlineMatches.push({
+                                  index: inlineMatch.index,
+                                  length: inlineMatch[0].length,
+                                  content: inlineMatch[1],
+                                  isBlock: false
+                                });
+                              }
+                              
+                              // Combine and sort all matches
+                              const allMatches = [...blockMatches, ...inlineMatches].sort((a, b) => a.index - b.index);
+                              
+                              // Process matches
+                              for (const match of allMatches) {
                                 if (match.index > lastIndex) {
                                   parts.push(children.slice(lastIndex, match.index));
                                 }
                                 try {
-                                  parts.push(<InlineMath key={`math-${key}-${match.index}`} math={match[1]} />);
+                                  if (match.isBlock) {
+                                    parts.push(<BlockMath key={`block-math-${key}-${match.index}`} math={match.content.trim()} />);
+                                  } else {
+                                    parts.push(<InlineMath key={`inline-math-${key}-${match.index}`} math={match.content.trim()} />);
+                                  }
                                 } catch (e) {
-                                  parts.push(match[0]);
+                                  parts.push(match.isBlock ? `[${match.content}]` : `\\(${match.content}\\)`);
                                 }
-                                lastIndex = match.index + match[0].length;
+                                lastIndex = match.index + match.length;
                               }
                               
                               if (lastIndex < children.length) {
