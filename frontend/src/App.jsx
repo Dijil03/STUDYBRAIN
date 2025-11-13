@@ -54,6 +54,7 @@ const StudyGroupDetail = lazy(() => import("./pages/StudyGroupDetail"));
 const Personalization = lazy(() => import("./pages/Personalization"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const StudyCoach = lazy(() => import("./pages/StudyCoach"));
+const StudyMaterialLibrary = lazy(() => import("./pages/StudyMaterialLibrary"));
 
 const App = () => {
   return (
@@ -114,6 +115,7 @@ const App = () => {
             <Route path="/study-groups/invite/:inviteToken" element={<JoinViaInvite />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/study-coach" element={<StudyCoach />} />
+            <Route path="/study-materials" element={<StudyMaterialLibrary />} />
             </Routes>
             </Suspense>
             <FloatingAICoach />
