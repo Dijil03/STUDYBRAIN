@@ -40,6 +40,9 @@ import {
   Music,
   Book
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import api from '../utils/axios';
 import { toast } from 'react-toastify';
 
@@ -469,7 +472,65 @@ const AITutor = ({ onClose }) => {
                     {message.timestamp.toLocaleTimeString()}
                   </span>
                 </div>
-                <div className="whitespace-pre-wrap">{message.content}</div>
+                {message.role === 'assistant' ? (
+                  <div className="prose prose-sm max-w-none 
+                    prose-headings:text-gray-800 prose-p:text-gray-700 prose-strong:text-gray-900
+                    prose-code:text-blue-600 prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700
+                    prose-blockquote:border-blue-500 prose-blockquote:text-gray-600
+                    prose-table:text-gray-700 prose-th:bg-gray-200 prose-td:bg-gray-50
+                    prose-a:text-blue-600 prose-a:no-underline hover:prose-a:text-blue-800
+                    prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:text-gray-700">
+                    <ReactMarkdown
+                      components={{
+                        code({ node, inline, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          return !inline && match ? (
+                            <SyntaxHighlighter
+                              style={vscDarkPlus}
+                              language={match[1]}
+                              PreTag="div"
+                              className="rounded-lg my-2"
+                              {...props}
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          ) : (
+                            <code className="bg-gray-200 px-1.5 py-0.5 rounded text-blue-600 font-mono text-sm" {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                        table({ children }) {
+                          return (
+                            <div className="overflow-x-auto my-4">
+                              <table className="min-w-full border-collapse border border-gray-300 rounded-lg">
+                                {children}
+                              </table>
+                            </div>
+                          );
+                        },
+                        th({ children }) {
+                          return (
+                            <th className="border border-gray-300 px-4 py-2 bg-gray-200 font-semibold text-left">
+                              {children}
+                            </th>
+                          );
+                        },
+                        td({ children }) {
+                          return (
+                            <td className="border border-gray-300 px-4 py-2">
+                              {children}
+                            </td>
+                          );
+                        },
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                )}
                 
                 {message.metadata && (
                   <div className="mt-2 flex flex-wrap gap-1">

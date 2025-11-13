@@ -12,6 +12,9 @@ import {
     BookOpen, // Added a new icon for a prompt
     Feather, // Added a new icon for a prompt
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
 
@@ -392,8 +395,64 @@ const AI = () => {
                         ${isUser ? 'rounded-br-md ' + bubbleClass : 'rounded-tl-md ' + bubbleClass}
                         transition-colors duration-200
                     `} style={{ contain: 'layout style paint' }}>
-                        <div className="text-sm sm:text-base whitespace-pre-wrap leading-relaxed prose prose-invert max-w-none">
-                            <span className="inline-block">{message.content}</span>
+                        <div className="text-sm sm:text-base leading-relaxed prose prose-invert max-w-none 
+                            prose-headings:text-gray-100 prose-p:text-gray-200 prose-strong:text-white
+                            prose-code:text-indigo-300 prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700
+                            prose-blockquote:border-indigo-500 prose-blockquote:text-gray-300
+                            prose-table:text-gray-200 prose-th:bg-gray-800 prose-td:bg-gray-800/50
+                            prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:text-indigo-300
+                            prose-ul:text-gray-200 prose-ol:text-gray-200 prose-li:text-gray-200">
+                            {!isUser ? (
+                                <ReactMarkdown
+                                    components={{
+                                        code({ node, inline, className, children, ...props }) {
+                                            const match = /language-(\w+)/.exec(className || '');
+                                            return !inline && match ? (
+                                                <SyntaxHighlighter
+                                                    style={vscDarkPlus}
+                                                    language={match[1]}
+                                                    PreTag="div"
+                                                    className="rounded-lg my-2"
+                                                    {...props}
+                                                >
+                                                    {String(children).replace(/\n$/, '')}
+                                                </SyntaxHighlighter>
+                                            ) : (
+                                                <code className="bg-gray-800/50 px-1.5 py-0.5 rounded text-indigo-300 font-mono text-sm" {...props}>
+                                                    {children}
+                                                </code>
+                                            );
+                                        },
+                                        table({ children }) {
+                                            return (
+                                                <div className="overflow-x-auto my-4">
+                                                    <table className="min-w-full border-collapse border border-gray-700 rounded-lg">
+                                                        {children}
+                                                    </table>
+                                                </div>
+                                            );
+                                        },
+                                        th({ children }) {
+                                            return (
+                                                <th className="border border-gray-700 px-4 py-2 bg-gray-800 font-semibold text-left">
+                                                    {children}
+                                                </th>
+                                            );
+                                        },
+                                        td({ children }) {
+                                            return (
+                                                <td className="border border-gray-700 px-4 py-2">
+                                                    {children}
+                                                </td>
+                                            );
+                                        },
+                                    }}
+                                >
+                                    {message.content}
+                                </ReactMarkdown>
+                            ) : (
+                                <span className="whitespace-pre-wrap">{message.content}</span>
+                            )}
                             {isStreaming && (
                                 <motion.span
                                     key={`cursor-${message.id}`}
