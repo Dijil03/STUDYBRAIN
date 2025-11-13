@@ -92,12 +92,25 @@ export const googleDocsController = {
             const { userId } = req.params;
             console.log('🔍 getAccessToken called for userId:', userId);
 
+            // Verify the userId matches the authenticated user
+            const authenticatedUserId = req.user?._id?.toString() || req.user?.id?.toString();
+            if (authenticatedUserId !== userId) {
+                console.error('❌ User ID mismatch:', { authenticatedUserId, requestedUserId: userId });
+                return res.status(403).json({ 
+                    success: false,
+                    error: 'Forbidden: You can only access your own tokens' 
+                });
+            }
+
             // Find user and get their Google OAuth tokens
             const user = await User.findById(userId);
             console.log('🔍 User found:', user ? 'Yes' : 'No');
 
             if (!user) {
-                return res.status(404).json({ error: 'User not found' });
+                return res.status(404).json({ 
+                    success: false,
+                    error: 'User not found' 
+                });
             }
 
             // Check if user has Google OAuth tokens
@@ -139,12 +152,25 @@ export const googleDocsController = {
             const { title, content = '' } = req.body;
             console.log('🔍 createDocument called for userId:', userId, 'title:', title);
 
+            // Verify the userId matches the authenticated user
+            const authenticatedUserId = req.user?._id?.toString() || req.user?.id?.toString();
+            if (authenticatedUserId !== userId) {
+                console.error('❌ User ID mismatch:', { authenticatedUserId, requestedUserId: userId });
+                return res.status(403).json({ 
+                    success: false,
+                    error: 'Forbidden: You can only create documents for yourself' 
+                });
+            }
+
             // Find user
             const user = await User.findById(userId);
             console.log('🔍 User found:', user ? 'Yes' : 'No');
 
             if (!user) {
-                return res.status(404).json({ error: 'User not found' });
+                return res.status(404).json({ 
+                    success: false,
+                    error: 'User not found' 
+                });
             }
 
             if (!user.googleAccessToken) {
@@ -227,6 +253,16 @@ export const googleDocsController = {
         try {
             const { userId } = req.params;
             console.log('📋 listDocuments called for userId:', userId);
+
+            // Verify the userId matches the authenticated user
+            const authenticatedUserId = req.user?._id?.toString() || req.user?.id?.toString();
+            if (authenticatedUserId !== userId) {
+                console.error('❌ User ID mismatch:', { authenticatedUserId, requestedUserId: userId });
+                return res.status(403).json({ 
+                    success: false,
+                    error: 'Forbidden: You can only access your own documents' 
+                });
+            }
 
             // Find user
             const user = await User.findById(userId);

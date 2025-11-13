@@ -34,10 +34,24 @@ const SimpleGoogleDocsIntegration = ({ userId, onDocumentCreated, onDocumentSele
       setCheckingConnection(true);
       const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
-      const response = await fetch(`${apiUrl}/google-docs/${userId}/token`);
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/token`, {
+        method: 'GET',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        if (response.status === 401 || response.status === 403) {
+          setIsConnected(false);
+          setError('Authentication required. Please log in.');
+        } else {
+          setIsConnected(false);
+          setError(errorData.error || errorData.message || 'Failed to check Google connection');
+        }
+        return;
       }
       
       const data = await response.json();
@@ -63,13 +77,31 @@ const SimpleGoogleDocsIntegration = ({ userId, onDocumentCreated, onDocumentSele
       setLoading(true);
       const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
-      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents`);
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents`, {
+        method: 'GET',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        if (response.status === 401 || response.status === 403) {
+          setError('Authentication required. Please connect your Google account.');
+          setIsConnected(false);
+        } else {
+          setError(errorData.error || 'Failed to load documents');
+        }
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.success) {
         setDocuments(data.documents);
       } else {
-        setError(data.error);
+        setError(data.error || 'Failed to load documents');
       }
     } catch (err) {
       console.error('Error loading documents:', err);

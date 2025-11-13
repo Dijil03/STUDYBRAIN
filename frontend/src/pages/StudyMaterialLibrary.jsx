@@ -138,10 +138,31 @@ const StudyMaterialLibrary = () => {
     try {
       const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
-      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents`);
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents`, {
+        method: 'GET',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Error fetching Google Docs:', response.status, errorData);
+        
+        // If authentication error, show helpful message
+        if (response.status === 401 || response.status === 403) {
+          console.warn('Authentication required for Google Docs');
+          return;
+        }
+        return;
+      }
+      
       const data = await response.json();
       if (data.success) {
         setGoogleDocs(data.documents || []);
+      } else {
+        console.error('Google Docs API error:', data.error);
       }
     } catch (error) {
       console.error('Error fetching Google Docs:', error);
