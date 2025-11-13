@@ -41,6 +41,7 @@ import {
   Book
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { InlineMath, BlockMath } from 'react-katex';
@@ -483,6 +484,7 @@ const AITutor = ({ onClose }) => {
                     prose-a:text-blue-600 prose-a:no-underline hover:prose-a:text-blue-800
                     prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:text-gray-700">
                     <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
                       components={{
                         // Render LaTeX math in paragraphs
                         p({ children }) {
@@ -596,21 +598,25 @@ const AITutor = ({ onClose }) => {
                         },
                         table({ children }) {
                           return (
-                            <div className="overflow-x-auto my-6 shadow-lg rounded-lg border border-gray-300">
-                              <table className="min-w-full border-collapse bg-white">
+                            <div className="overflow-x-auto my-6 shadow-xl rounded-xl border-2 border-gray-300 bg-white">
+                              <table className="min-w-full border-collapse">
                                 {children}
                               </table>
                             </div>
                           );
                         },
                         thead({ children }) {
-                          return <thead className="bg-gray-100">{children}</thead>;
+                          return <thead className="bg-gradient-to-r from-gray-100 via-gray-100/95 to-gray-100 border-b-2 border-gray-300">{children}</thead>;
                         },
                         tbody({ children }) {
-                          return <tbody className="divide-y divide-gray-200">{children}</tbody>;
+                          return (
+                            <tbody className="divide-y divide-gray-200/60 [&>tr:nth-child(even)]:bg-white [&>tr:nth-child(odd)]:bg-gray-50/50 [&>tr]:hover:bg-gray-100/80 [&>tr]:transition-colors [&>tr]:duration-150">
+                              {children}
+                            </tbody>
+                          );
                         },
                         tr({ children }) {
-                          return <tr className="hover:bg-gray-50 transition-colors">{children}</tr>;
+                          return <tr>{children}</tr>;
                         },
                         th({ children }) {
                           // Process children recursively to find and render LaTeX in strings only
@@ -692,7 +698,7 @@ const AITutor = ({ onClose }) => {
                           
                           const processed = processChildren(children);
                           return (
-                            <th className="border-b border-gray-300 px-4 py-3 bg-gray-100 font-semibold text-left text-gray-800 text-sm sticky top-0 z-10">
+                            <th className="border-r border-gray-300/50 last:border-r-0 px-5 py-4 font-bold text-left text-gray-800 text-sm sticky top-0 z-10 whitespace-nowrap bg-gray-100">
                               {processed !== null ? processed : children}
                             </th>
                           );
@@ -777,8 +783,8 @@ const AITutor = ({ onClose }) => {
                           
                           const processed = processChildren(children);
                           return (
-                            <td className="border-b border-gray-200 px-4 py-3 text-gray-700 text-sm align-top">
-                              <div className="max-w-md">{processed !== null ? processed : children}</div>
+                            <td className="border-r border-gray-200/50 last:border-r-0 px-5 py-4 text-gray-700 text-sm align-top">
+                              <div className="max-w-md break-words">{processed !== null ? processed : children}</div>
                             </td>
                           );
                         },

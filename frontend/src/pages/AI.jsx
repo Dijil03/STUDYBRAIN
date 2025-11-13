@@ -13,6 +13,7 @@ import {
     Feather, // Added a new icon for a prompt
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { InlineMath, BlockMath } from 'react-katex';
@@ -406,6 +407,7 @@ const AI = () => {
                             prose-ul:text-gray-200 prose-ol:text-gray-200 prose-li:text-gray-200">
                             {!isUser ? (
                                 <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
                                     components={{
                                         // Render LaTeX math in paragraphs and text
                                         p({ children }) {
@@ -610,7 +612,7 @@ const AI = () => {
                                             
                                             const processed = processChildren(children);
                                             return (
-                                                <th className="border-b border-gray-700 px-4 py-3 bg-gray-800/90 font-semibold text-left text-gray-100 text-sm sticky top-0 z-10">
+                                                <th className="border-r border-gray-600/50 last:border-r-0 px-5 py-4 font-bold text-left text-gray-100 text-sm sticky top-0 z-10 whitespace-nowrap">
                                                     {processed !== null ? processed : children}
                                                 </th>
                                             );
@@ -695,28 +697,32 @@ const AI = () => {
                                             
                                             const processed = processChildren(children);
                                             return (
-                                                <td className="border-b border-gray-700/50 px-4 py-3 text-gray-200 text-sm align-top">
-                                                    <div className="max-w-md">{processed !== null ? processed : children}</div>
+                                                <td className="border-r border-gray-700/30 last:border-r-0 px-5 py-4 text-gray-200 text-sm align-top">
+                                                    <div className="max-w-md break-words">{processed !== null ? processed : children}</div>
                                                 </td>
                                             );
                                         },
                                         table({ children }) {
                                             return (
-                                                <div className="overflow-x-auto my-6 shadow-lg rounded-lg border border-gray-700/50">
-                                                    <table className="min-w-full border-collapse bg-gray-900/50">
+                                                <div className="overflow-x-auto my-6 shadow-xl rounded-xl border-2 border-gray-700/60 bg-gray-900/80 backdrop-blur-sm">
+                                                    <table className="min-w-full border-collapse">
                                                         {children}
                                                     </table>
                                                 </div>
                                             );
                                         },
                                         thead({ children }) {
-                                            return <thead className="bg-gray-800/80">{children}</thead>;
+                                            return <thead className="bg-gradient-to-r from-gray-800 via-gray-800/95 to-gray-800 border-b-2 border-gray-600">{children}</thead>;
                                         },
                                         tbody({ children }) {
-                                            return <tbody className="divide-y divide-gray-700/50">{children}</tbody>;
+                                            return (
+                                                <tbody className="divide-y divide-gray-700/40 [&>tr:nth-child(even)]:bg-gray-900/40 [&>tr:nth-child(odd)]:bg-gray-900/60 [&>tr]:hover:bg-gray-800/50 [&>tr]:transition-colors [&>tr]:duration-150">
+                                                    {children}
+                                                </tbody>
+                                            );
                                         },
                                         tr({ children }) {
-                                            return <tr className="hover:bg-gray-800/30 transition-colors">{children}</tr>;
+                                            return <tr>{children}</tr>;
                                         },
                                     }}
                                 >
