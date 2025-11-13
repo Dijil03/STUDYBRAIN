@@ -246,7 +246,6 @@ const Navbar = () => {
     { name: 'Study Time', path: '/study-time', icon: BookOpen, color: 'text-green-400' },
     { name: 'Homework', path: '/homework', icon: Target, color: 'text-orange-400' },
     { name: 'Week Plan', path: '/week-plan', icon: Calendar, color: 'text-purple-400' },
-    { name: 'Study Group', path: '/study-groups', icon: Users, color: 'text-teal-400' },
     { name: 'My World', path: '/myworld', icon: Trophy, color: 'text-pink-400' },
     { name: 'Pricing', path: '/pricing', icon: CreditCard, color: 'text-yellow-400' },
   ];
@@ -268,6 +267,7 @@ const Navbar = () => {
 
   const toolsDropdown = [
     { name: 'AI Tutor', path: '/ai-tutor', icon: Sparkles, color: 'text-indigo-400' },
+    { name: 'Study Groups', path: '/study-groups', icon: Users, color: 'text-teal-400' },
     { name: 'Flashcards', path: '/flashcard', icon: Zap, color: 'text-yellow-400' },
     { name: 'Flashcard Generator', path: '/flashcards', icon: Edit3, color: 'text-yellow-500' },
     { name: 'Flashcard Viewer', path: '/flashcard-viewer', icon: BookOpen, color: 'text-yellow-600' },
