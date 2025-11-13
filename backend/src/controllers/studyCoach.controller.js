@@ -202,23 +202,95 @@ Be:
     
     if (!completion) {
       console.error(`❌ Study Coach: All models failed. Last error:`, lastError?.message);
-      // Return default coaching message
+      
+      // Check if it's a credit/quota error
+      const isQuotaError = lastError?.message?.includes('402') || 
+                          lastError?.message?.includes('credits') || 
+                          lastError?.message?.includes('quota') ||
+                          lastError?.message?.includes('exceeded');
+      
+      // Generate intelligent fallback based on user data
+      const generateFallbackCoaching = () => {
+        const { metrics, recentActivity } = coachingData;
+        
+        // Analyze performance
+        let greeting = `Hey ${coachingData.user.name}! 👋`;
+        let message = "";
+        let insight = "";
+        let tip = "";
+        let motivation = "";
+        let focusAreas = [];
+        let encouragement = "";
+        
+        // Performance-based messages
+        if (metrics.avgProductivity >= 7) {
+          message = "You're doing great! Your productivity is high - keep up this momentum!";
+          insight = "High productivity scores indicate effective study habits.";
+          tip = "Maintain your current study routine - it's working well!";
+          motivation = "Excellence is not a skill, it's an attitude!";
+          focusAreas = ["Maintain Consistency", "Build on Strengths", "Help Others"];
+          encouragement = "Your dedication is paying off - you're on the right track!";
+        } else if (metrics.avgProductivity >= 5) {
+          message = "You're making steady progress! There's room to optimize your study sessions.";
+          insight = "Moderate productivity suggests you could benefit from better time management.";
+          tip = "Try the Pomodoro technique: 25 minutes focused study, 5 minutes break.";
+          motivation = "Progress, not perfection!";
+          focusAreas = ["Time Management", "Focus Techniques", "Active Recall"];
+          encouragement = "Every session counts - keep building your study habits!";
+        } else {
+          message = "Let's boost your study effectiveness! Small changes can make a big difference.";
+          insight = "Lower productivity might indicate distractions or unclear goals.";
+          tip = "Start with shorter, focused sessions and gradually increase duration.";
+          motivation = "The journey of a thousand miles begins with a single step!";
+          focusAreas = ["Build Focus", "Set Clear Goals", "Eliminate Distractions"];
+          encouragement = "You've got this! Start small and build momentum!";
+        }
+        
+        // Study time analysis
+        if (metrics.totalStudyTime < 60) {
+          tip = "Aim for at least 60 minutes of study time this week to see better results.";
+        } else if (metrics.totalStudyTime > 300) {
+          tip = "Great study time! Remember to take breaks to avoid burnout.";
+        }
+        
+        // Session count analysis
+        if (metrics.sessionsCount < 3) {
+          insight = "More frequent study sessions can improve retention.";
+          tip = "Try to study a little bit every day, even if it's just 15 minutes.";
+        }
+        
+        // Homework completion
+        if (recentActivity.upcomingDeadlines > 0) {
+          focusAreas.push("Complete Assignments");
+          tip = `You have ${recentActivity.upcomingDeadlines} upcoming deadline(s) - plan your time wisely!`;
+        }
+        
+        // Streak encouragement
+        if (metrics.currentStreak > 0) {
+          encouragement = `Amazing ${metrics.currentStreak}-day streak! Keep it going!`;
+        }
+        
+        return {
+          greeting,
+          message,
+          insight,
+          tip,
+          motivation,
+          focusAreas: focusAreas.length > 0 ? focusAreas : ["Consistency", "Time Management", "Active Recall"],
+          encouragement: encouragement || "You're making progress - keep going!"
+        };
+      };
+      
       return res.status(200).json({
         success: true,
         data: {
-          coaching: {
-            greeting: `Hey ${coachingData.user.name}! 👋`,
-            message: "Keep up the great work! Your dedication to learning is showing.",
-            insight: "Consistency is key to success.",
-            tip: "Try to study at the same time each day to build a habit.",
-            motivation: "Every expert was once a beginner!",
-            focusAreas: ["Consistency", "Time Management", "Active Recall"],
-            encouragement: "You're making progress - keep going!"
-          },
+          coaching: generateFallbackCoaching(),
           metrics: coachingData.metrics,
           metadata: {
             model: 'fallback',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            apiLimitReached: isQuotaError,
+            message: isQuotaError ? 'Using intelligent fallback due to API limits' : 'Using fallback due to API error'
           }
         }
       });
@@ -332,14 +404,52 @@ Be specific, actionable, and encouraging.`;
     }
     
     if (!completion) {
+      // Generate intelligent fallback based on subject and duration
+      const generateFallbackGuidance = () => {
+        const techniques = [];
+        const reminders = [];
+        
+        // Subject-specific techniques
+        if (subject.toLowerCase().includes('math') || subject.toLowerCase().includes('mathematics')) {
+          techniques.push("Practice Problems", "Work Through Examples", "Review Formulas");
+          reminders.push("Show your work step-by-step", "Check your answers");
+        } else if (subject.toLowerCase().includes('science') || subject.toLowerCase().includes('biology') || subject.toLowerCase().includes('chemistry')) {
+          techniques.push("Concept Mapping", "Visual Learning", "Experiment Review");
+          reminders.push("Draw diagrams to visualize concepts", "Connect theory to real-world examples");
+        } else if (subject.toLowerCase().includes('history') || subject.toLowerCase().includes('social')) {
+          techniques.push("Timeline Creation", "Storytelling Method", "Cause and Effect Analysis");
+          reminders.push("Create mental stories for events", "Connect events chronologically");
+        } else if (subject.toLowerCase().includes('language') || subject.toLowerCase().includes('english')) {
+          techniques.push("Reading Aloud", "Note-taking", "Vocabulary Building");
+          reminders.push("Practice writing", "Review grammar rules");
+        } else {
+          techniques.push("Active Recall", "Spaced Repetition", "Pomodoro Technique");
+          reminders.push("Take breaks every 25 minutes", "Review key concepts");
+        }
+        
+        // Duration-based recommendations
+        if (duration >= 60) {
+          reminders.push("Take a 10-minute break after 50 minutes");
+          techniques.push("Break into 25-minute chunks");
+        } else if (duration <= 30) {
+          reminders.push("Stay focused - short sessions need maximum concentration");
+        }
+        
+        return {
+          sessionPlan: `Focus on ${subject || 'your studies'} for the next ${duration || 30} minutes. ${goal ? `Your goal: ${goal}` : 'Stay focused and make the most of this session!'}`,
+          techniques: techniques.length > 0 ? techniques : ["Active Recall", "Spaced Repetition", "Pomodoro Technique"],
+          reminders: reminders.length > 0 ? reminders : ["Take breaks every 25 minutes", "Stay hydrated", "Stay focused"],
+          encouragement: "You've got this! Stay focused and make progress!"
+        };
+      };
+      
       return res.status(200).json({
         success: true,
         data: {
-          guidance: {
-            sessionPlan: `Focus on ${subject || 'your studies'} for the next ${duration || 30} minutes.`,
-            techniques: ["Active Recall", "Spaced Repetition", "Pomodoro Technique"],
-            reminders: ["Take breaks every 25 minutes", "Stay hydrated"],
-            encouragement: "You've got this! Stay focused!"
+          guidance: generateFallbackGuidance(),
+          metadata: {
+            model: 'fallback',
+            timestamp: new Date().toISOString()
           }
         }
       });
@@ -455,17 +565,85 @@ Provide in this JSON format:
     }
     
     if (!completion) {
+      // Generate intelligent fallback based on weekly data
+      const generateFallbackReport = () => {
+        const highlights = [];
+        const improvements = [];
+        const nextWeekGoals = [];
+        const recommendations = [];
+        
+        // Analyze and generate insights
+        if (weeklyData.sessionsCount >= 5) {
+          highlights.push("Consistent study sessions throughout the week");
+        } else {
+          improvements.push("Increase number of study sessions");
+          nextWeekGoals.push("Aim for at least 5 study sessions");
+        }
+        
+        if (weeklyData.totalStudyTime >= 300) {
+          highlights.push("Excellent total study time");
+        } else if (weeklyData.totalStudyTime >= 150) {
+          highlights.push("Good study time - room for growth");
+          improvements.push("Gradually increase daily study time");
+        } else {
+          improvements.push("Increase weekly study time");
+          nextWeekGoals.push("Target 300+ minutes of study time");
+        }
+        
+        if (weeklyData.avgProductivity >= 7) {
+          highlights.push("High productivity scores");
+        } else {
+          improvements.push("Improve study session productivity");
+          recommendations.push("Use Pomodoro technique for better focus");
+        }
+        
+        if (weeklyData.homeworkCompleted === weeklyData.homeworkTotal && weeklyData.homeworkTotal > 0) {
+          highlights.push("Completed all homework assignments");
+        } else if (weeklyData.homeworkTotal > 0) {
+          improvements.push("Complete remaining homework");
+          nextWeekGoals.push("Finish all assignments on time");
+        }
+        
+        if (weeklyData.assessmentScores.length > 0) {
+          const avgScore = weeklyData.assessmentScores.reduce((sum, s) => sum + s, 0) / weeklyData.assessmentScores.length;
+          if (avgScore >= 80) {
+            highlights.push(`Strong assessment performance (${Math.round(avgScore)}% average)`);
+          } else {
+            improvements.push("Review assessment mistakes and learn from them");
+            recommendations.push("Focus on weak areas identified in assessments");
+          }
+        }
+        
+        // Default values if lists are empty
+        if (highlights.length === 0) highlights.push("Started your learning journey");
+        if (improvements.length === 0) improvements.push("Build consistent study habits");
+        if (nextWeekGoals.length === 0) nextWeekGoals.push("Maintain consistency");
+        if (recommendations.length === 0) recommendations.push("Review notes daily", "Use active recall");
+        
+        const summary = weeklyData.totalStudyTime >= 300 
+          ? "You've had a productive week! Your dedication to learning is showing great results."
+          : weeklyData.sessionsCount >= 5
+          ? "You've maintained good consistency this week. Keep building on this foundation!"
+          : "You've made a start this week. Next week, focus on building more consistent study habits.";
+        
+        return {
+          summary,
+          highlights,
+          improvements,
+          nextWeekGoals,
+          recommendations
+        };
+      };
+      
       return res.status(200).json({
         success: true,
         data: {
-          report: {
-            summary: "You've made progress this week!",
-            highlights: ["Consistent study sessions", "Completed homework"],
-            improvements: ["Increase study time", "Improve productivity"],
-            nextWeekGoals: ["Maintain consistency", "Complete all homework"],
-            recommendations: ["Use Pomodoro technique", "Review notes daily"]
-          },
-          metrics: weeklyData
+          report: generateFallbackReport(),
+          metrics: weeklyData,
+          metadata: {
+            model: 'fallback',
+            timestamp: new Date().toISOString()
+          }
         }
       });
     }
