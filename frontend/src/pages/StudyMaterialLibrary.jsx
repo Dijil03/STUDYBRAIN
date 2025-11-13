@@ -59,6 +59,8 @@ const StudyMaterialLibrary = () => {
   const [googleDocs, setGoogleDocs] = useState([]);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedGoogleDoc, setSelectedGoogleDoc] = useState(null);
+  const [viewingNote, setViewingNote] = useState(null);
+  const [showNoteViewer, setShowNoteViewer] = useState(false);
   const [newMaterial, setNewMaterial] = useState({
     title: '',
     description: '',
@@ -386,17 +388,32 @@ const StudyMaterialLibrary = () => {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
+  const handleViewNote = async (material) => {
+    if (material.type === 'note') {
+      // Mark as viewed by fetching the material (which increments viewCount)
+      try {
+        await api.get(`/study-materials/material/${material._id}`);
+      } catch (error) {
+        console.error('Error marking note as viewed:', error);
+      }
+      setViewingNote(material);
+      setShowNoteViewer(true);
+    }
+  };
+
   const MaterialCard = ({ material }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      onClick={() => material.type === 'note' && handleViewNote(material)}
       className={`relative group bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300 ${
         selectedMaterials.includes(material._id) ? 'ring-2 ring-purple-500' : ''
-      }`}
+      } ${material.type === 'note' ? 'cursor-pointer' : ''}`}
     >
       {/* Selection checkbox */}
       <button
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           if (selectedMaterials.includes(material._id)) {
             setSelectedMaterials(selectedMaterials.filter(id => id !== material._id));
           } else {
@@ -469,7 +486,10 @@ const StudyMaterialLibrary = () => {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleToggleStar(material)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleStar(material);
+            }}
             className="p-1.5 hover:bg-slate-700 rounded transition-colors"
           >
             <Star
@@ -479,7 +499,8 @@ const StudyMaterialLibrary = () => {
             />
           </button>
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setEditingMaterial(material);
               setShowEditModal(true);
             }}
@@ -488,7 +509,10 @@ const StudyMaterialLibrary = () => {
             <Edit className="w-4 h-4 text-gray-400" />
           </button>
           <button
-            onClick={() => handleDeleteMaterial(material._id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteMaterial(material._id);
+            }}
             className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
           >
             <Trash2 className="w-4 h-4 text-red-400" />
@@ -502,9 +526,10 @@ const StudyMaterialLibrary = () => {
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
+      onClick={() => material.type === 'note' && handleViewNote(material)}
       className={`group flex items-center gap-4 p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 hover:border-purple-500/50 transition-all ${
         selectedMaterials.includes(material._id) ? 'ring-2 ring-purple-500' : ''
-      }`}
+      } ${material.type === 'note' ? 'cursor-pointer' : ''}`}
     >
       <button
         onClick={() => {
@@ -555,7 +580,10 @@ const StudyMaterialLibrary = () => {
           </div>
         )}
         <button
-          onClick={() => handleToggleStar(material)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleToggleStar(material);
+          }}
           className="p-2 hover:bg-slate-700 rounded"
         >
           <Star
@@ -565,7 +593,8 @@ const StudyMaterialLibrary = () => {
           />
         </button>
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setEditingMaterial(material);
             setShowEditModal(true);
           }}
@@ -574,7 +603,10 @@ const StudyMaterialLibrary = () => {
           <Edit className="w-4 h-4 text-gray-400" />
         </button>
         <button
-          onClick={() => handleDeleteMaterial(material._id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteMaterial(material._id);
+          }}
           className="p-2 hover:bg-red-500/20 rounded"
         >
           <Trash2 className="w-4 h-4 text-red-400" />
@@ -1422,6 +1454,149 @@ const StudyMaterialLibrary = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Note Viewer Modal */}
+      <AnimatePresence>
+        {showNoteViewer && viewingNote && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setShowNoteViewer(false);
+                setViewingNote(null);
+              }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-0 flex items-center justify-center z-50 p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-slate-900 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-700/50">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/50">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/20 rounded-lg">
+                      <FileText className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">{viewingNote.title}</h2>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-400">
+                        <span className="capitalize">{viewingNote.subject}</span>
+                        {viewingNote.tags && viewingNote.tags.length > 0 && (
+                          <>
+                            <span>•</span>
+                            <div className="flex gap-1">
+                              {viewingNote.tags.slice(0, 3).map((tag, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded text-xs"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingMaterial(viewingNote);
+                        setShowNoteViewer(false);
+                        setShowEditModal(true);
+                      }}
+                      className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                      title="Edit Note"
+                    >
+                      <Edit className="w-5 h-5 text-gray-400" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNoteViewer(false);
+                        setViewingNote(null);
+                      }}
+                      className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5 text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {viewingNote.description && (
+                  <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                    <p className="text-gray-300 text-sm">{viewingNote.description}</p>
+                  </div>
+                )}
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto mb-4">
+                  <div className="prose prose-invert prose-slate max-w-none
+                    prose-headings:text-white prose-p:text-gray-200 prose-strong:text-white
+                    prose-code:text-indigo-300 prose-pre:bg-slate-800 prose-pre:border prose-pre:border-slate-700
+                    prose-blockquote:border-indigo-500 prose-blockquote:text-gray-300
+                    prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:text-indigo-300
+                    prose-ul:text-gray-200 prose-ol:text-gray-200 prose-li:text-gray-200">
+                    <div className="whitespace-pre-wrap text-gray-200 leading-relaxed">
+                      {viewingNote.content || (
+                        <p className="text-gray-400 italic">No content available</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
+                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <Eye className="w-4 h-4" />
+                      <span>{viewingNote.viewCount || 0} views</span>
+                    </div>
+                    <span>
+                      Created: {new Date(viewingNote.createdAt).toLocaleDateString()}
+                    </span>
+                    {viewingNote.updatedAt !== viewingNote.createdAt && (
+                      <span>
+                        Updated: {new Date(viewingNote.updatedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleToggleStar(viewingNote)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        viewingNote.isStarred
+                          ? 'bg-yellow-500/20 text-yellow-400'
+                          : 'hover:bg-slate-800 text-gray-400'
+                      }`}
+                    >
+                      <Star
+                        className={`w-5 h-5 ${viewingNote.isStarred ? 'fill-yellow-400' : ''}`}
+                      />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNoteViewer(false);
+                        handleDeleteMaterial(viewingNote._id);
+                      }}
+                      className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5 text-red-400" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </>
