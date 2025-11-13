@@ -43,6 +43,8 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { InlineMath, BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 import api from '../utils/axios';
 import { toast } from 'react-toastify';
 
@@ -482,8 +484,45 @@ const AITutor = ({ onClose }) => {
                     prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:text-gray-700">
                     <ReactMarkdown
                       components={{
+                        // Render LaTeX math in paragraphs
+                        p({ children }) {
+                          const text = React.Children.toArray(children).join('');
+                          const parts = [];
+                          let lastIndex = 0;
+                          
+                          const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                          let match;
+                          
+                          while ((match = inlineRegex.exec(text)) !== null) {
+                            if (match.index > lastIndex) {
+                              parts.push(text.slice(lastIndex, match.index));
+                            }
+                            try {
+                              parts.push(<InlineMath key={match.index} math={match[1]} />);
+                            } catch (e) {
+                              parts.push(match[0]);
+                            }
+                            lastIndex = match.index + match[0].length;
+                          }
+                          
+                          if (lastIndex < text.length) {
+                            parts.push(text.slice(lastIndex));
+                          }
+                          
+                          return <p>{parts.length > 0 ? parts : children}</p>;
+                        },
                         code({ node, inline, className, children, ...props }) {
                           const match = /language-(\w+)/.exec(className || '');
+                          const codeContent = String(children).replace(/\n$/, '');
+                          
+                          if (match && match[1] === 'math') {
+                            try {
+                              return <BlockMath math={codeContent} />;
+                            } catch (e) {
+                              return <code className="bg-gray-200 px-1.5 py-0.5 rounded text-blue-600 font-mono text-sm" {...props}>{children}</code>;
+                            }
+                          }
+                          
                           return !inline && match ? (
                             <SyntaxHighlighter
                               style={vscDarkPlus}
@@ -492,7 +531,7 @@ const AITutor = ({ onClose }) => {
                               className="rounded-lg my-2"
                               {...props}
                             >
-                              {String(children).replace(/\n$/, '')}
+                              {codeContent}
                             </SyntaxHighlighter>
                           ) : (
                             <code className="bg-gray-200 px-1.5 py-0.5 rounded text-blue-600 font-mono text-sm" {...props}>
@@ -510,18 +549,56 @@ const AITutor = ({ onClose }) => {
                           );
                         },
                         th({ children }) {
-                          return (
-                            <th className="border border-gray-300 px-4 py-2 bg-gray-200 font-semibold text-left">
-                              {children}
-                            </th>
-                          );
+                          const text = React.Children.toArray(children).join('');
+                          const parts = [];
+                          let lastIndex = 0;
+                          
+                          const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                          let match;
+                          
+                          while ((match = inlineRegex.exec(text)) !== null) {
+                            if (match.index > lastIndex) {
+                              parts.push(text.slice(lastIndex, match.index));
+                            }
+                            try {
+                              parts.push(<InlineMath key={match.index} math={match[1]} />);
+                            } catch (e) {
+                              parts.push(match[0]);
+                            }
+                            lastIndex = match.index + match[0].length;
+                          }
+                          
+                          if (lastIndex < text.length) {
+                            parts.push(text.slice(lastIndex));
+                          }
+                          
+                          return <th className="border border-gray-300 px-4 py-2 bg-gray-200 font-semibold text-left">{parts.length > 0 ? parts : children}</th>;
                         },
                         td({ children }) {
-                          return (
-                            <td className="border border-gray-300 px-4 py-2">
-                              {children}
-                            </td>
-                          );
+                          const text = React.Children.toArray(children).join('');
+                          const parts = [];
+                          let lastIndex = 0;
+                          
+                          const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                          let match;
+                          
+                          while ((match = inlineRegex.exec(text)) !== null) {
+                            if (match.index > lastIndex) {
+                              parts.push(text.slice(lastIndex, match.index));
+                            }
+                            try {
+                              parts.push(<InlineMath key={match.index} math={match[1]} />);
+                            } catch (e) {
+                              parts.push(match[0]);
+                            }
+                            lastIndex = match.index + match[0].length;
+                          }
+                          
+                          if (lastIndex < text.length) {
+                            parts.push(text.slice(lastIndex));
+                          }
+                          
+                          return <td className="border border-gray-300 px-4 py-2">{parts.length > 0 ? parts : children}</td>;
                         },
                       }}
                     >
