@@ -2,6 +2,25 @@ import { OpenAI } from "openai";
 import AIChat from '../models/ai.model.js';
 import { v4 as uuidv4 } from 'uuid';
 
+// Get the best available model for AI assistant
+const getAIModel = () => {
+  // Priority: Environment variable > High-quality models > Fallback
+  if (process.env.AI_MODEL) {
+    return process.env.AI_MODEL;
+  }
+  
+  // Try high-quality models (in order of preference)
+  const preferredModels = [
+    'openai/gpt-oss-120b',  // User's preferred model (if available via router)
+    'meta-llama/Llama-3.1-70B-Instruct',  // High-quality, widely available
+    'mistralai/Mixtral-8x7B-Instruct-v0.1', // Excellent for instruction following
+    'Qwen/Qwen2.5-72B-Instruct', // Strong reasoning capabilities
+    'deepseek-ai/DeepSeek-V3.2-Exp:novita', // Current fallback
+  ];
+  
+  return preferredModels[0]; // Use the first available
+};
+
 // Lazy initialization of OpenAI client with Hugging Face
 // Only initialize when needed and if HF_TOKEN is available
 let client = null;
@@ -87,7 +106,9 @@ export const sendMessage = async (req, res) => {
       console.log('No authenticated user, using temporary ID:', userId);
     }
 
-    const { sessionId, message, model = 'deepseek-ai/DeepSeek-V3.2-Exp:novita' } = req.body;
+    const { sessionId, message, model: requestedModel } = req.body;
+    // Use requested model or get the best available model
+    const model = requestedModel || getAIModel();
 
     if (!sessionId || !message) {
       return res.status(400).json({
@@ -137,14 +158,28 @@ export const sendMessage = async (req, res) => {
     // Check if client is available
     const aiClient = getClient();
 
-    // Create streaming completion
-    const stream = await aiClient.chat.completions.create({
-      model,
-      messages: messagesForAI,
-      max_tokens: 1000,
-      temperature: 0.7,
-      stream: true
-    });
+    // Create streaming completion with fallback
+    let stream;
+    try {
+      stream = await aiClient.chat.completions.create({
+        model,
+        messages: messagesForAI,
+        max_tokens: 1200,
+        temperature: 0.7,
+        stream: true
+      });
+    } catch (modelError) {
+      // Fallback to a more reliable model if the preferred one fails
+      console.warn(`Model ${model} failed, trying fallback:`, modelError.message);
+      const fallbackModel = 'deepseek-ai/DeepSeek-V3.2-Exp:novita';
+      stream = await aiClient.chat.completions.create({
+        model: fallbackModel,
+        messages: messagesForAI,
+        max_tokens: 1200,
+        temperature: 0.7,
+        stream: true
+      });
+    }
 
     // Process the stream
     for await (const chunk of stream) {

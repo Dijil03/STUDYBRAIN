@@ -6,6 +6,25 @@ const userMaterials = new Map();
 const userRecommendations = new Map();
 const tutorSessions = new Map();
 
+// Get the best available model for tutoring
+const getTutorModel = () => {
+  // Priority: Environment variable > High-quality models > Fallback
+  if (process.env.AI_TUTOR_MODEL) {
+    return process.env.AI_TUTOR_MODEL;
+  }
+  
+  // Try high-quality models (in order of preference)
+  const preferredModels = [
+    'openai/gpt-oss-120b',  // User's preferred model (if available via router)
+    'meta-llama/Llama-3.1-70B-Instruct',  // High-quality, widely available
+    'mistralai/Mixtral-8x7B-Instruct-v0.1', // Excellent for instruction following
+    'Qwen/Qwen2.5-72B-Instruct', // Strong reasoning capabilities
+    'deepseek-ai/DeepSeek-V3.2-Exp:novita', // Current fallback
+  ];
+  
+  return preferredModels[0]; // Use the first available
+};
+
 let tutorClient = null;
 const getTutorClient = () => {
   if (!tutorClient) {
@@ -154,15 +173,33 @@ Produce structured output with:
 4. Quick quiz or reflection question
 5. Suggested next steps`;
 
-    const completion = await client.chat.completions.create({
-      model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
-      messages: [
-        { role: 'system', content: 'You craft concise, student-friendly study aids.' },
-        { role: 'user', content: materialPrompt },
-      ],
-      max_tokens: 800,
-      temperature: 0.7,
-    });
+    const model = getTutorModel();
+    let completion;
+    
+    try {
+      completion = await client.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: 'You craft concise, student-friendly study aids.' },
+          { role: 'user', content: materialPrompt },
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
+      });
+    } catch (modelError) {
+      // Fallback to a more reliable model if the preferred one fails
+      console.warn(`Model ${model} failed, trying fallback:`, modelError.message);
+      const fallbackModel = 'deepseek-ai/DeepSeek-V3.2-Exp:novita';
+      completion = await client.chat.completions.create({
+        model: fallbackModel,
+        messages: [
+          { role: 'system', content: 'You craft concise, student-friendly study aids.' },
+          { role: 'user', content: materialPrompt },
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
+      });
+    }
 
     const generatedContent = completion.choices?.[0]?.message?.content?.trim() ??
       'Study material could not be generated at this time.';
@@ -314,12 +351,27 @@ Provide step-by-step guidance, encourage active recall, and end with a friendly 
       ...session.messages.map((msg) => ({ role: msg.role, content: msg.content })),
     ];
 
-    const completion = await client.chat.completions.create({
-      model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
-      messages: messagesForAI,
-      max_tokens: 600,
-      temperature: 0.65,
-    });
+    const model = getTutorModel();
+    let completion;
+    
+    try {
+      completion = await client.chat.completions.create({
+        model,
+        messages: messagesForAI,
+        max_tokens: 800,
+        temperature: 0.65,
+      });
+    } catch (modelError) {
+      // Fallback to a more reliable model if the preferred one fails
+      console.warn(`Model ${model} failed, trying fallback:`, modelError.message);
+      const fallbackModel = 'deepseek-ai/DeepSeek-V3.2-Exp:novita';
+      completion = await client.chat.completions.create({
+        model: fallbackModel,
+        messages: messagesForAI,
+        max_tokens: 800,
+        temperature: 0.65,
+      });
+    }
 
     const aiResponse = completion.choices?.[0]?.message?.content?.trim() ??
       "I'm still thinking about that. Could you rephrase the question?";
