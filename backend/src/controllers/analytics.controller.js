@@ -470,6 +470,116 @@ Be realistic and data-driven.`;
   }
 };
 
+// Get trend data for charts
+export const getTrends = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { timeRange = 'week' } = req.query;
+    
+    const { startDate, endDate } = getDateRange(timeRange);
+    
+    // Fetch study sessions and assessments
+    const [studySessions, assessments] = await Promise.all([
+      StudySession.find({ userId, date: { $gte: startDate, $lte: endDate } })
+        .sort({ date: 1 }),
+      Assessment.find({ userId, createdAt: { $gte: startDate, $lte: endDate } })
+        .sort({ createdAt: 1 })
+    ]);
+    
+    // Group data by day
+    const days = timeRange === 'day' ? 1 : timeRange === 'week' ? 7 : 30;
+    const dataByDay = {};
+    
+    // Initialize all days
+    const now = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const dateKey = date.toISOString().split('T')[0];
+      dataByDay[dateKey] = {
+        date,
+        studyTime: 0,
+        performance: [],
+        productivity: []
+      };
+    }
+    
+    // Aggregate study sessions
+    studySessions.forEach(session => {
+      const dateKey = new Date(session.date).toISOString().split('T')[0];
+      if (dataByDay[dateKey]) {
+        dataByDay[dateKey].studyTime += session.duration || 0;
+        if (session.productivity) {
+          dataByDay[dateKey].productivity.push(session.productivity);
+        }
+      }
+    });
+    
+    // Aggregate assessment scores
+    assessments.forEach(assessment => {
+      assessment.submissions.forEach(submission => {
+        const dateKey = new Date(submission.submittedAt || assessment.createdAt).toISOString().split('T')[0];
+        if (dataByDay[dateKey]) {
+          dataByDay[dateKey].performance.push(submission.score);
+        }
+      });
+    });
+    
+    // Build chart data
+    const labels = [];
+    const performanceData = [];
+    const studyTimeData = [];
+    const productivityData = [];
+    
+    Object.keys(dataByDay).sort().forEach(dateKey => {
+      const dayData = dataByDay[dateKey];
+      const date = new Date(dayData.date);
+      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      
+      // Calculate average performance for the day
+      const avgPerformance = dayData.performance.length > 0
+        ? dayData.performance.reduce((sum, score) => sum + score, 0) / dayData.performance.length
+        : null;
+      performanceData.push(avgPerformance !== null ? Math.round(avgPerformance) : null);
+      
+      // Study time in minutes
+      studyTimeData.push(dayData.studyTime);
+      
+      // Calculate average productivity for the day
+      const avgProductivity = dayData.productivity.length > 0
+        ? dayData.productivity.reduce((sum, prod) => sum + prod, 0) / dayData.productivity.length
+        : null;
+      productivityData.push(avgProductivity !== null ? Math.round(avgProductivity * 10) / 10 : null);
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        performance: {
+          labels,
+          data: performanceData
+        },
+        studyTime: {
+          labels,
+          data: studyTimeData
+        },
+        productivity: {
+          labels,
+          data: productivityData
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching trends:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch trend data',
+      error: error.message
+    });
+  }
+};
+
 // Generate analytics report
 export const generateReport = async (req, res) => {
   try {
@@ -484,12 +594,12 @@ export const generateReport = async (req, res) => {
         status: 'pending'
       }
     });
-    } catch (error) {
+  } catch (error) {
     console.error('Error generating report:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to generate report',
       error: error.message
     });
-    }
+  }
 };
