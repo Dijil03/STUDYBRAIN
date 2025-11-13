@@ -409,7 +409,20 @@ const AI = () => {
                                     components={{
                                         // Render LaTeX math in paragraphs and text
                                         p({ children }) {
-                                            const text = React.Children.toArray(children).join('');
+                                            // Safely extract text from children
+                                            const extractText = (children) => {
+                                                return React.Children.toArray(children).map(child => {
+                                                    if (typeof child === 'string' || typeof child === 'number') {
+                                                        return String(child);
+                                                    }
+                                                    if (React.isValidElement(child) && child.props && child.props.children) {
+                                                        return extractText(child.props.children);
+                                                    }
+                                                    return '';
+                                                }).join('');
+                                            };
+                                            
+                                            const text = extractText(children);
                                             // Match inline math \( ... \) and block math \[ ... \]
                                             const parts = [];
                                             let lastIndex = 0;
@@ -437,7 +450,7 @@ const AI = () => {
                                                 parts.push(text.slice(lastIndex));
                                             }
                                             
-                                            return <p>{parts.length > 0 ? parts : children}</p>;
+                                            return <p>{parts.length > 0 && text ? parts : children}</p>;
                                         },
                                         // Render block math in code blocks or separate blocks
                                         code({ node, inline, className, children, ...props }) {
@@ -470,7 +483,20 @@ const AI = () => {
                                             );
                                         },
                                         th({ children }) {
-                                            const text = React.Children.toArray(children).join('');
+                                            // Safely extract text from children
+                                            const extractText = (children) => {
+                                                return React.Children.toArray(children).map(child => {
+                                                    if (typeof child === 'string' || typeof child === 'number') {
+                                                        return String(child);
+                                                    }
+                                                    if (React.isValidElement(child) && child.props && child.props.children) {
+                                                        return extractText(child.props.children);
+                                                    }
+                                                    return '';
+                                                }).join('');
+                                            };
+                                            
+                                            const text = extractText(children);
                                             const parts = [];
                                             let lastIndex = 0;
                                             
@@ -495,12 +521,25 @@ const AI = () => {
                                             
                                             return (
                                                 <th className="border-b border-gray-700 px-4 py-3 bg-gray-800/90 font-semibold text-left text-gray-100 text-sm sticky top-0 z-10">
-                                                    {parts.length > 0 ? parts : children}
+                                                    {parts.length > 0 && text ? parts : children}
                                                 </th>
                                             );
                                         },
                                         td({ children }) {
-                                            const text = React.Children.toArray(children).join('');
+                                            // Safely extract text from children
+                                            const extractText = (children) => {
+                                                return React.Children.toArray(children).map(child => {
+                                                    if (typeof child === 'string' || typeof child === 'number') {
+                                                        return String(child);
+                                                    }
+                                                    if (React.isValidElement(child) && child.props && child.props.children) {
+                                                        return extractText(child.props.children);
+                                                    }
+                                                    return '';
+                                                }).join('');
+                                            };
+                                            
+                                            const text = extractText(children);
                                             const parts = [];
                                             let lastIndex = 0;
                                             
@@ -525,7 +564,7 @@ const AI = () => {
                                             
                                             return (
                                                 <td className="border-b border-gray-700/50 px-4 py-3 text-gray-200 text-sm align-top">
-                                                    <div className="max-w-md">{parts.length > 0 ? parts : children}</div>
+                                                    <div className="max-w-md">{parts.length > 0 && text ? parts : children}</div>
                                                 </td>
                                             );
                                         },
