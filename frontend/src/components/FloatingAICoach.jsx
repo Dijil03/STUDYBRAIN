@@ -46,11 +46,33 @@ const FloatingAICoach = () => {
     }
   };
 
-  const addWelcomeMessage = () => {
+  const addWelcomeMessage = async () => {
+    try {
+      // Get daily coaching from Study Coach API
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        const response = await api.get(`/study-coach/daily/${userId}`);
+        if (response.data.success && response.data.data.coaching) {
+          const coaching = response.data.data.coaching;
+          const welcomeMessage = {
+            id: 'welcome',
+            role: 'assistant',
+            content: `${coaching.greeting}\n\n${coaching.message}\n\n💡 **Today's Tip:** ${coaching.tip}\n\n${coaching.encouragement}`,
+            timestamp: new Date()
+          };
+          setMessages([welcomeMessage]);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading daily coaching:', error);
+    }
+    
+    // Fallback welcome message
     const welcomeMessage = {
       id: 'welcome',
       role: 'assistant',
-      content: `👋 Hi! I'm your AI Study Coach! I'm here to help you with:\n\n✨ **Study Planning** - Create personalized study schedules\n📊 **Performance Analysis** - Understand your learning patterns\n🎯 **Goal Setting** - Set and track your academic goals\n💡 **Study Tips** - Get personalized study strategies\n📚 **Subject Help** - Get guidance on any subject\n\nWhat would you like help with today?`,
+      content: `👋 Hi! How are you doing today?\n\nI'm Coach Brain, your AI Study Coach! I'm here to help you with:\n\n✨ **Study Planning** - Create personalized study schedules\n📊 **Performance Analysis** - Understand your learning patterns\n🎯 **Goal Setting** - Set and track your academic goals\n💡 **Study Tips** - Get personalized study strategies\n📚 **Subject Help** - Get guidance on any subject\n\nWhat would you like help with today?`,
       timestamp: new Date()
     };
     setMessages([welcomeMessage]);
@@ -81,19 +103,28 @@ const FloatingAICoach = () => {
         await initializeSession();
       }
 
-      // Get user analytics for context
+      // Get user analytics and coaching context
       let userContext = '';
       try {
-        const analyticsResponse = await api.get(`/analytics/dashboard/${userId}?timeRange=week`);
+        const [analyticsResponse, coachingResponse] = await Promise.all([
+          api.get(`/analytics/dashboard/${userId}?timeRange=week`),
+          api.get(`/study-coach/daily/${userId}`).catch(() => null)
+        ]);
+        
         if (analyticsResponse.data.success) {
           const data = analyticsResponse.data.data;
           userContext = `User's recent study data: ${data.overview?.totalStudyTime || 0} min studied, ${data.overview?.sessionsCompleted || 0} sessions, ${data.performance?.averageAccuracy || 0}% average performance.`;
+        }
+        
+        if (coachingResponse?.data?.success) {
+          const coaching = coachingResponse.data.data.coaching;
+          userContext += ` As Coach Brain, remember: ${coaching.insight || 'Focus on consistency'}.`;
         }
       } catch (err) {
         // Continue without context if analytics fail
       }
 
-      // Use AI chat endpoint
+      // Use AI chat endpoint with study coach context
       const API_BASE_URL = api.defaults?.baseURL || 'http://localhost:5001/api';
       const response = await fetch(`${API_BASE_URL}/ai/chat/message`, {
         method: 'POST',
@@ -103,7 +134,7 @@ const FloatingAICoach = () => {
         credentials: 'include',
         body: JSON.stringify({
           sessionId: sessionId || 'coach-session',
-          message: `${userContext ? userContext + ' ' : ''}${userMessage.content}`,
+          message: `${userContext ? `[Context: ${userContext}] ` : ''}As Coach Brain, the AI Study Coach, respond to: ${userMessage.content}`,
           context: 'study_coach'
         })
       });
@@ -207,7 +238,7 @@ const FloatingAICoach = () => {
           animate={{ rotate: [0, 10, -10, 0] }}
           transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
         >
-          <MessageCircle className="w-8 h-8" />
+          <Bot className="w-8 h-8" />
         </motion.div>
         <motion.div
           className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-0 group-hover:opacity-50 blur-xl"
