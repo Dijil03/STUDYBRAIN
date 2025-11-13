@@ -51,6 +51,7 @@ const FocusGarden = lazy(() => import("./pages/FocusGarden"));
 const StudyGroups = lazy(() => import("./pages/StudyGroups"));
 const StudyGroupDetail = lazy(() => import("./pages/StudyGroupDetail"));
 const Personalization = lazy(() => import("./pages/Personalization"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 
 const App = () => {
   return (
@@ -109,6 +110,7 @@ const App = () => {
             <Route path="/study-groups" element={<StudyGroups />} />
             <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
             <Route path="/study-groups/invite/:inviteToken" element={<JoinViaInvite />} />
+            <Route path="/analytics" element={<Analytics />} />
             </Routes>
             </Suspense>
         </ThemeWrapper>
