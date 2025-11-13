@@ -469,33 +469,6 @@ const AI = () => {
                                                 </code>
                                             );
                                         },
-                                        // Render math in table cells
-                                        td({ children }) {
-                                            const text = React.Children.toArray(children).join('');
-                                            const parts = [];
-                                            let lastIndex = 0;
-                                            
-                                            const inlineRegex = /\\\(([^\\]+?)\\\)/g;
-                                            let match;
-                                            
-                                            while ((match = inlineRegex.exec(text)) !== null) {
-                                                if (match.index > lastIndex) {
-                                                    parts.push(text.slice(lastIndex, match.index));
-                                                }
-                                                try {
-                                                    parts.push(<InlineMath key={match.index} math={match[1]} />);
-                                                } catch (e) {
-                                                    parts.push(match[0]);
-                                                }
-                                                lastIndex = match.index + match[0].length;
-                                            }
-                                            
-                                            if (lastIndex < text.length) {
-                                                parts.push(text.slice(lastIndex));
-                                            }
-                                            
-                                            return <td className="border border-gray-700 px-4 py-2">{parts.length > 0 ? parts : children}</td>;
-                                        },
                                         th({ children }) {
                                             const text = React.Children.toArray(children).join('');
                                             const parts = [];
@@ -520,16 +493,59 @@ const AI = () => {
                                                 parts.push(text.slice(lastIndex));
                                             }
                                             
-                                            return <th className="border border-gray-700 px-4 py-2 bg-gray-800 font-semibold text-left">{parts.length > 0 ? parts : children}</th>;
+                                            return (
+                                                <th className="border-b border-gray-700 px-4 py-3 bg-gray-800/90 font-semibold text-left text-gray-100 text-sm sticky top-0 z-10">
+                                                    {parts.length > 0 ? parts : children}
+                                                </th>
+                                            );
+                                        },
+                                        td({ children }) {
+                                            const text = React.Children.toArray(children).join('');
+                                            const parts = [];
+                                            let lastIndex = 0;
+                                            
+                                            const inlineRegex = /\\\(([^\\]+?)\\\)/g;
+                                            let match;
+                                            
+                                            while ((match = inlineRegex.exec(text)) !== null) {
+                                                if (match.index > lastIndex) {
+                                                    parts.push(text.slice(lastIndex, match.index));
+                                                }
+                                                try {
+                                                    parts.push(<InlineMath key={match.index} math={match[1]} />);
+                                                } catch (e) {
+                                                    parts.push(match[0]);
+                                                }
+                                                lastIndex = match.index + match[0].length;
+                                            }
+                                            
+                                            if (lastIndex < text.length) {
+                                                parts.push(text.slice(lastIndex));
+                                            }
+                                            
+                                            return (
+                                                <td className="border-b border-gray-700/50 px-4 py-3 text-gray-200 text-sm align-top">
+                                                    <div className="max-w-md">{parts.length > 0 ? parts : children}</div>
+                                                </td>
+                                            );
                                         },
                                         table({ children }) {
                                             return (
-                                                <div className="overflow-x-auto my-4">
-                                                    <table className="min-w-full border-collapse border border-gray-700 rounded-lg">
+                                                <div className="overflow-x-auto my-6 shadow-lg rounded-lg border border-gray-700/50">
+                                                    <table className="min-w-full border-collapse bg-gray-900/50">
                                                         {children}
                                                     </table>
                                                 </div>
                                             );
+                                        },
+                                        thead({ children }) {
+                                            return <thead className="bg-gray-800/80">{children}</thead>;
+                                        },
+                                        tbody({ children }) {
+                                            return <tbody className="divide-y divide-gray-700/50">{children}</tbody>;
+                                        },
+                                        tr({ children }) {
+                                            return <tr className="hover:bg-gray-800/30 transition-colors">{children}</tr>;
                                         },
                                     }}
                                 >

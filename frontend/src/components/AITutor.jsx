@@ -541,12 +541,21 @@ const AITutor = ({ onClose }) => {
                         },
                         table({ children }) {
                           return (
-                            <div className="overflow-x-auto my-4">
-                              <table className="min-w-full border-collapse border border-gray-300 rounded-lg">
+                            <div className="overflow-x-auto my-6 shadow-lg rounded-lg border border-gray-300">
+                              <table className="min-w-full border-collapse bg-white">
                                 {children}
                               </table>
                             </div>
                           );
+                        },
+                        thead({ children }) {
+                          return <thead className="bg-gray-100">{children}</thead>;
+                        },
+                        tbody({ children }) {
+                          return <tbody className="divide-y divide-gray-200">{children}</tbody>;
+                        },
+                        tr({ children }) {
+                          return <tr className="hover:bg-gray-50 transition-colors">{children}</tr>;
                         },
                         th({ children }) {
                           const text = React.Children.toArray(children).join('');
@@ -572,7 +581,11 @@ const AITutor = ({ onClose }) => {
                             parts.push(text.slice(lastIndex));
                           }
                           
-                          return <th className="border border-gray-300 px-4 py-2 bg-gray-200 font-semibold text-left">{parts.length > 0 ? parts : children}</th>;
+                          return (
+                            <th className="border-b border-gray-300 px-4 py-3 bg-gray-100 font-semibold text-left text-gray-800 text-sm sticky top-0 z-10">
+                              {parts.length > 0 ? parts : children}
+                            </th>
+                          );
                         },
                         td({ children }) {
                           const text = React.Children.toArray(children).join('');
@@ -598,7 +611,11 @@ const AITutor = ({ onClose }) => {
                             parts.push(text.slice(lastIndex));
                           }
                           
-                          return <td className="border border-gray-300 px-4 py-2">{parts.length > 0 ? parts : children}</td>;
+                          return (
+                            <td className="border-b border-gray-200 px-4 py-3 text-gray-700 text-sm align-top">
+                              <div className="max-w-md">{parts.length > 0 ? parts : children}</div>
+                            </td>
+                          );
                         },
                       }}
                     >
