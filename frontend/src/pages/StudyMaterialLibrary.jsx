@@ -613,7 +613,17 @@ const StudyMaterialLibrary = () => {
               userId={userId}
               onDocumentCreated={(doc) => {
                 console.log('Google Doc created:', doc);
-                fetchGoogleDocs();
+                // Add the new document immediately to the state
+                setGoogleDocs(prev => {
+                  // Check if document already exists to avoid duplicates
+                  const exists = prev.some(d => d.id === doc.id);
+                  if (exists) return prev;
+                  return [doc, ...prev];
+                });
+                // Also refresh the full list after a short delay to ensure consistency
+                setTimeout(() => {
+                  fetchGoogleDocs();
+                }, 1000);
               }}
               onDocumentSelected={(doc) => {
                 console.log('Google Doc selected:', doc);
@@ -808,7 +818,7 @@ const StudyMaterialLibrary = () => {
             )}
 
             {/* Google Docs */}
-            {googleDocs.map((doc) => (
+            {googleDocs && googleDocs.length > 0 && googleDocs.map((doc) => (
               viewMode === 'grid' ? (
                 <motion.div
                   key={doc.id}
