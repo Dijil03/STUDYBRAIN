@@ -267,6 +267,7 @@ const Navbar = () => {
 
   const toolsDropdown = [
     { name: 'AI Tutor', path: '/ai-tutor', icon: Sparkles, color: 'text-indigo-400' },
+    { name: 'AI Study Coach', path: '/study-coach', icon: Brain, color: 'text-purple-400' },
     { name: 'Study Groups', path: '/study-groups', icon: Users, color: 'text-teal-400' },
     { name: 'Flashcards', path: '/flashcard', icon: Zap, color: 'text-yellow-400' },
     { name: 'Flashcard Generator', path: '/flashcards', icon: Edit3, color: 'text-yellow-500' },

@@ -25,6 +25,7 @@ import gardenRoutes from './routes/garden.routes.js'
 import aiTutorRoutes from './routes/aiTutor.routes.js'
 import studyGroupRoutes from './routes/studyGroup.routes.js'
 import analyticsRoutes from './routes/analytics.routes.js'
+import studyCoachRoutes from './routes/studyCoach.routes.js'
 import connectDB from './db/connection.js';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -217,6 +218,7 @@ app.use('/api/garden', gardenRoutes);
 app.use('/api/ai-tutor', aiTutorRoutes);
 app.use('/api/study-groups', studyGroupRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/study-coach', studyCoachRoutes);
 
 // Register AI routes with error handling
 try {
