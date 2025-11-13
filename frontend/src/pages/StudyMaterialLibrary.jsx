@@ -26,9 +26,13 @@ import {
   File,
   FolderPlus,
   CheckSquare,
-  Square
+  Square,
+  Globe,
+  ExternalLink,
+  Import
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import SimpleGoogleDocsIntegration from '../components/SimpleGoogleDocsIntegration';
 import api from '../utils/axios';
 import { toast } from 'react-toastify';
 
@@ -52,6 +56,9 @@ const StudyMaterialLibrary = () => {
   const [tags, setTags] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [stats, setStats] = useState(null);
+  const [googleDocs, setGoogleDocs] = useState([]);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [selectedGoogleDoc, setSelectedGoogleDoc] = useState(null);
   const [newMaterial, setNewMaterial] = useState({
     title: '',
     description: '',
@@ -71,6 +78,7 @@ const StudyMaterialLibrary = () => {
       fetchMaterials();
       fetchTags();
       fetchSubjects();
+      fetchGoogleDocs();
     }
   }, [userId, selectedSubject, selectedType, selectedTag, showArchived, showStarred, sortBy, sortOrder]);
 
@@ -123,6 +131,50 @@ const StudyMaterialLibrary = () => {
       }
     } catch (error) {
       console.error('Error fetching subjects:', error);
+    }
+  };
+
+  const fetchGoogleDocs = async () => {
+    try {
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+      const response = await fetch(`${apiUrl}/google-docs/${userId}/documents`);
+      const data = await response.json();
+      if (data.success) {
+        setGoogleDocs(data.documents || []);
+      }
+    } catch (error) {
+      console.error('Error fetching Google Docs:', error);
+    }
+  };
+
+  const handleImportGoogleDoc = async (googleDoc, subject = 'general', tags = []) => {
+    try {
+      const response = await api.post(`/study-materials/${userId}`, {
+        title: googleDoc.name,
+        description: `Imported from Google Docs - ${new Date(googleDoc.modifiedTime).toLocaleDateString()}`,
+        type: 'link',
+        subject: subject,
+        linkUrl: googleDoc.webViewLink,
+        tags: ['google-docs', ...tags],
+        metadata: {
+          googleDocId: googleDoc.id,
+          importedAt: new Date().toISOString(),
+          modifiedTime: googleDoc.modifiedTime
+        }
+      });
+
+      if (response.data.success) {
+        toast.success('Google Doc imported successfully!');
+        setShowImportModal(false);
+        setSelectedGoogleDoc(null);
+        fetchMaterials();
+        fetchTags();
+        fetchSubjects();
+      }
+    } catch (error) {
+      console.error('Error importing Google Doc:', error);
+      toast.error('Failed to import Google Doc');
     }
   };
 
@@ -554,6 +606,23 @@ const StudyMaterialLibrary = () => {
               </div>
             </div>
           )}
+
+          {/* Google Docs Integration */}
+          <div className="mt-6 mb-6">
+            <SimpleGoogleDocsIntegration 
+              userId={userId}
+              onDocumentCreated={(doc) => {
+                console.log('Google Doc created:', doc);
+                fetchGoogleDocs();
+              }}
+              onDocumentSelected={(doc) => {
+                console.log('Google Doc selected:', doc);
+                // Open in new tab or show import modal
+                setSelectedGoogleDoc(doc);
+                setShowImportModal(true);
+              }}
+            />
+          </div>
         </div>
 
         {/* Filters and Search */}
@@ -737,6 +806,107 @@ const StudyMaterialLibrary = () => {
                 <MaterialListItem key={material._id} material={material} />
               )
             )}
+
+            {/* Google Docs */}
+            {googleDocs.map((doc) => (
+              viewMode === 'grid' ? (
+                <motion.div
+                  key={doc.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative group bg-gradient-to-br from-blue-500/10 to-red-500/10 backdrop-blur-sm rounded-xl p-4 border border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Globe className="w-5 h-5 text-blue-400" />
+                      <ExternalLink className="w-4 h-4 text-blue-300" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedGoogleDoc(doc);
+                          setShowImportModal(true);
+                        }}
+                        className="p-1.5 hover:bg-blue-500/20 rounded transition-colors"
+                        title="Import to Library"
+                      >
+                        <Import className="w-4 h-4 text-blue-400" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(doc.webViewLink, '_blank');
+                        }}
+                        className="p-1.5 hover:bg-slate-700 rounded transition-colors"
+                      >
+                        <MoreVertical className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <h3 className="text-white font-semibold mb-2 line-clamp-2">{doc.name}</h3>
+                  <p className="text-gray-400 text-xs mb-3">
+                    Google Doc • {new Date(doc.modifiedTime).toLocaleDateString()}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-blue-500/20">
+                    <span className="text-xs text-blue-300">Google Docs</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(doc.webViewLink, '_blank');
+                      }}
+                      className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-lg text-xs hover:bg-blue-500/30 transition-colors"
+                    >
+                      Open
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={doc.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="group flex items-center gap-4 p-4 bg-gradient-to-br from-blue-500/10 to-red-500/10 backdrop-blur-sm rounded-xl border border-blue-500/30 hover:border-blue-400/50 transition-all"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Globe className="h-6 w-6 text-blue-400" />
+                    <ExternalLink className="h-4 w-4 text-blue-300" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-white font-semibold truncate">{doc.name}</h3>
+                    </div>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                      <span>Google Doc</span>
+                      <span>•</span>
+                      <span>{new Date(doc.modifiedTime).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedGoogleDoc(doc);
+                        setShowImportModal(true);
+                      }}
+                      className="p-2 hover:bg-blue-500/20 rounded"
+                      title="Import to Library"
+                    >
+                      <Import className="w-4 h-4 text-blue-400" />
+                    </button>
+                    <button
+                      onClick={() => window.open(doc.webViewLink, '_blank')}
+                      className="p-2 hover:bg-slate-700 rounded"
+                    >
+                      <ExternalLink className="w-4 h-4 text-blue-300" />
+                    </button>
+                  </div>
+                </motion.div>
+              )
+            ))}
           </div>
         )}
       </div>
@@ -1110,6 +1280,114 @@ const StudyMaterialLibrary = () => {
                       className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
                     >
                       Update Material
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Import Google Doc Modal */}
+      <AnimatePresence>
+        {showImportModal && selectedGoogleDoc && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowImportModal(false)}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-0 flex items-center justify-center z-50 p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-slate-900 rounded-2xl p-6 max-w-md w-full">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <Globe className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Import Google Doc</h2>
+                      <p className="text-sm text-gray-400">Add to your study materials</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowImportModal(false)}
+                    className="p-2 hover:bg-slate-800 rounded-lg"
+                  >
+                    <X className="w-5 h-5 text-gray-400" />
+                  </button>
+                </div>
+
+                <div className="mb-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                  <div className="flex items-center gap-3 mb-2">
+                    <FileText className="w-5 h-5 text-blue-400" />
+                    <h3 className="text-white font-semibold truncate">{selectedGoogleDoc.name}</h3>
+                  </div>
+                  <p className="text-sm text-gray-400">
+                    Modified: {new Date(selectedGoogleDoc.modifiedTime).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    handleImportGoogleDoc(
+                      selectedGoogleDoc,
+                      formData.get('subject') || 'general',
+                      formData.get('tags')?.split(',').map(t => t.trim()).filter(Boolean) || []
+                    );
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+                    <select
+                      name="subject"
+                      defaultValue="general"
+                      className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="general">General</option>
+                      {subjects.map((subject) => (
+                        <option key={subject.name} value={subject.name}>
+                          {subject.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Tags (comma-separated)</label>
+                    <input
+                      type="text"
+                      name="tags"
+                      placeholder="e.g., notes, important, exam-prep"
+                      className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowImportModal(false)}
+                      className="px-6 py-2 bg-slate-800 text-gray-300 rounded-lg hover:bg-slate-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all flex items-center gap-2"
+                    >
+                      <Import className="w-4 h-4" />
+                      Import
                     </button>
                   </div>
                 </form>
