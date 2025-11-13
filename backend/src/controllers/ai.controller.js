@@ -8,13 +8,13 @@ const getAIModels = () => {
   if (process.env.AI_MODEL) {
     return [process.env.AI_MODEL, 'deepseek-ai/DeepSeek-V3.2-Exp:novita'];
   }
-  
+
   // Try high-quality models (in order of preference)
   return [
+    'openai/gpt-oss-120b',  // User's preferred model - try first!
     'meta-llama/Llama-3.1-70B-Instruct',  // High-quality, widely available
     'mistralai/Mixtral-8x7B-Instruct-v0.1', // Excellent for instruction following
     'Qwen/Qwen2.5-72B-Instruct', // Strong reasoning capabilities
-    'openai/gpt-oss-120b',  // User's preferred model (may not be available via router)
     'deepseek-ai/DeepSeek-V3.2-Exp:novita', // Reliable fallback
   ];
 };
@@ -160,7 +160,7 @@ export const sendMessage = async (req, res) => {
     let stream;
     let lastError = null;
     let usedModel = null;
-    
+
     for (const model of modelsToTry) {
       try {
         console.log(`🤖 AI Assistant: Trying model: ${model}`);
@@ -180,7 +180,7 @@ export const sendMessage = async (req, res) => {
         // Continue to next model
       }
     }
-    
+
     // If all models failed, throw the last error
     if (!stream) {
       console.error(`❌ AI Assistant: All models failed. Last error:`, lastError?.message);

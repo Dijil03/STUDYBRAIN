@@ -15,10 +15,10 @@ const getTutorModels = () => {
   
   // Try high-quality models (in order of preference)
   return [
+    'openai/gpt-oss-120b',  // User's preferred model - try first!
     'meta-llama/Llama-3.1-70B-Instruct',  // High-quality, widely available
     'mistralai/Mixtral-8x7B-Instruct-v0.1', // Excellent for instruction following
     'Qwen/Qwen2.5-72B-Instruct', // Strong reasoning capabilities
-    'openai/gpt-oss-120b',  // User's preferred model (may not be available via router)
     'deepseek-ai/DeepSeek-V3.2-Exp:novita', // Reliable fallback
   ];
 };
