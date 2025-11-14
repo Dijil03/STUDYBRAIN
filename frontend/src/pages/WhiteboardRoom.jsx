@@ -85,6 +85,11 @@ const WhiteboardRoom = () => {
   const [shareCopyStatus, setShareCopyStatus] = useState('');
   const [shareUpdating, setShareUpdating] = useState(false);
   const [linkRefreshing, setLinkRefreshing] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [collaboratorLoading, setCollaboratorLoading] = useState(false);
+  const [selectedInvitee, setSelectedInvitee] = useState('');
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteFeedback, setInviteFeedback] = useState('');
   const collaboratorList = useMemo(
     () => participants.filter((person) => person.userId !== userId),
     [participants, userId],
@@ -96,6 +101,10 @@ const WhiteboardRoom = () => {
     const codeSegment = whiteboard.shareCode ? `?code=${whiteboard.shareCode}` : '';
     return `${origin}/whiteboards/${whiteboard._id}${codeSegment}`;
   }, [whiteboard]);
+  const pendingInvites = useMemo(
+    () => (whiteboard?.inviteRequests || []).filter((invite) => invite.status === 'pending'),
+    [whiteboard],
+  );
 
   const devicePixelRatioValue = window.devicePixelRatio || 1;
 
@@ -284,6 +293,29 @@ const WhiteboardRoom = () => {
     }
   };
 
+  const handleSendInvite = async () => {
+    if (!selectedInvitee) {
+      setInviteFeedback('Select a user to invite.');
+      setTimeout(() => setInviteFeedback(''), 2500);
+      return;
+    }
+    try {
+      setInviteSending(true);
+      const response = await WhiteboardService.inviteUser(userId, whiteboardId, {
+        targetUserId: selectedInvitee,
+      });
+      const updatedBoard = response.data?.whiteboard || whiteboard;
+      setWhiteboard(updatedBoard);
+      setInviteFeedback('Invite sent!');
+      setTimeout(() => setInviteFeedback(''), 2500);
+    } catch (err) {
+      console.error('Failed to send invite', err);
+      setInviteFeedback(err.response?.data?.message || err.message);
+    } finally {
+      setInviteSending(false);
+    }
+  };
+
   const persistCanvas = useCallback(async () => {
     if (!whiteboard || !userId) return;
     setSaving(true);
@@ -352,6 +384,42 @@ const WhiteboardRoom = () => {
     if (!userId) return;
     fetchWhiteboard();
   }, [fetchWhiteboard, userId]);
+
+  useEffect(() => {
+    const shouldLoad = userId && whiteboard && !whiteboard.allowGuests;
+    if (!shouldLoad) {
+      setAvailableUsers([]);
+      setSelectedInvitee('');
+      return;
+    }
+
+    const loadCollaborators = async () => {
+      try {
+        setCollaboratorLoading(true);
+        const response = await WhiteboardService.listCollaborators(userId);
+        const users = response.data?.users || [];
+        const blockedIds = new Set([
+          whiteboard.owner?.toString?.() || whiteboard.owner,
+          ...(whiteboard.members || []).map((id) => id?.toString?.() || id),
+          ...(whiteboard.collaborators || []).map((collab) => collab.userId?.toString?.() || collab.userId),
+          ...(whiteboard.inviteRequests || []).map((invite) => invite.userId?._id || invite.userId),
+        ]);
+        const filtered = users.filter((user) => !blockedIds.has(user._id));
+        setAvailableUsers(filtered);
+        if (filtered.length) {
+          setSelectedInvitee((prev) => (prev && filtered.some((user) => user._id === prev) ? prev : filtered[0]._id));
+        } else {
+          setSelectedInvitee('');
+        }
+      } catch (err) {
+        console.error('Failed to load collaborators', err);
+      } finally {
+        setCollaboratorLoading(false);
+      }
+    };
+
+    loadCollaborators();
+  }, [userId, whiteboard]);
 
   useEffect(() => {
     dirtyRef.current = false;
@@ -558,6 +626,93 @@ const WhiteboardRoom = () => {
               </button>
             </div>
           </div>
+
+          {!whiteboard?.allowGuests && (
+            <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-4">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-cyan-300/80">Invite teammates</p>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Choose specific StudyBrain users to request access. They&apos;ll see the invite in their whiteboard dashboard.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <label className="text-xs text-slate-400">Select a user</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={selectedInvitee}
+                        onChange={(e) => setSelectedInvitee(e.target.value)}
+                        disabled={collaboratorLoading || !availableUsers.length}
+                        className="flex-1 rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-2 text-sm text-white focus:border-cyan-400/60 focus:outline-none"
+                      >
+                        {!availableUsers.length && (
+                          <option value="">No users available</option>
+                        )}
+                        {availableUsers.map((user) => (
+                          <option key={user._id} value={user._id}>
+                            {user.username || user.email}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={handleSendInvite}
+                        disabled={inviteSending || !selectedInvitee}
+                        className="inline-flex items-center rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-cyan-900/40 transition hover:scale-[1.01] disabled:opacity-60"
+                      >
+                        {inviteSending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending
+                          </>
+                        ) : (
+                          <>
+                            Send invite
+                            <Share2 className="ml-2 h-4 w-4" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    {inviteFeedback && (
+                      <p className="text-xs text-cyan-200">{inviteFeedback}</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Pending invites</p>
+                  {pendingInvites.length === 0 ? (
+                    <p className="mt-2 text-sm text-slate-400">
+                      No pending requests. Invited users will appear here until they respond.
+                    </p>
+                  ) : (
+                    <div className="mt-3 space-y-2">
+                      {pendingInvites.map((invite) => (
+                        <div
+                          key={invite._id || invite.userId?._id || invite.userId}
+                          className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-2xl bg-white/10 text-center text-base font-bold leading-9">
+                              {(invite.userId?.username?.[0] || invite.userId?.email?.[0] || 'U').toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-white">{invite.userId?.username || invite.userId?.email || 'Pending user'}</p>
+                              <p className="text-xs text-slate-400">
+                                Invited {invite.createdAt ? new Date(invite.createdAt).toLocaleDateString() : ''}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-amber-200">
+                            Pending
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

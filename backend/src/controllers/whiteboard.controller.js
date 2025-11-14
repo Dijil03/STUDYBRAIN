@@ -95,7 +95,10 @@ export const getWhiteboards = async (req, res) => {
 export const getWhiteboardById = async (req, res) => {
   try {
     const { whiteboardId, userId } = req.params;
-    const whiteboard = await Whiteboard.findById(whiteboardId);
+    const whiteboard = await Whiteboard.findById(whiteboardId).populate({
+      path: 'inviteRequests.userId',
+      select: 'username email profilePicture',
+    });
 
     if (!whiteboard) {
       return res.status(404).json({ success: false, message: 'Whiteboard not found' });
@@ -167,6 +170,10 @@ export const saveWhiteboardCanvas = async (req, res) => {
     whiteboard.markModified('canvasData');
 
     await whiteboard.save();
+    await whiteboard.populate({
+      path: 'inviteRequests.userId',
+      select: 'username email profilePicture',
+    });
 
     res.status(200).json({
       success: true,
@@ -218,6 +225,10 @@ export const updateWhiteboardMeta = async (req, res) => {
     }
 
     await whiteboard.save();
+    await whiteboard.populate({
+      path: 'inviteRequests.userId',
+      select: 'username email profilePicture',
+    });
 
     res.status(200).json({
       success: true,
@@ -258,6 +269,198 @@ export const deleteWhiteboard = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete whiteboard',
+      error: error.message,
+    });
+  }
+};
+
+export const getAvailableCollaborators = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { search, limit = 25 } = req.query;
+    const safeLimit = Math.min(Number(limit) || 25, 50);
+
+    const query = { _id: { $ne: userId } };
+    if (search?.trim()) {
+      const regex = new RegExp(search.trim(), 'i');
+      query.$or = [
+        { username: regex },
+        { email: regex },
+      ];
+    }
+
+    const users = await User.find(query)
+      .select('_id username email profilePicture')
+      .limit(safeLimit)
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    console.error('Error fetching collaborators:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch collaborators',
+      error: error.message,
+    });
+  }
+};
+
+export const inviteCollaborator = async (req, res) => {
+  try {
+    const { whiteboardId, userId } = req.params;
+    const { targetUserId } = req.body;
+
+    if (!targetUserId) {
+      return res.status(400).json({ success: false, message: 'Target user is required' });
+    }
+
+    const whiteboard = await Whiteboard.findById(whiteboardId);
+
+    if (!whiteboard) {
+      return res.status(404).json({ success: false, message: 'Whiteboard not found' });
+    }
+
+    if (whiteboard.owner.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, message: 'Only the owner can invite collaborators' });
+    }
+
+    const existsAsMember =
+      whiteboard.owner.toString() === targetUserId.toString() ||
+      whiteboard.members.some((memberId) => memberId.toString() === targetUserId.toString()) ||
+      whiteboard.collaborators.some((collab) => collab.userId?.toString() === targetUserId.toString());
+
+    if (existsAsMember) {
+      return res.status(400).json({ success: false, message: 'User already has access to this whiteboard' });
+    }
+
+    const existingInvite = whiteboard.inviteRequests.find(
+      (invite) => invite.userId.toString() === targetUserId.toString() && invite.status === 'pending',
+    );
+
+    if (existingInvite) {
+      return res.status(400).json({ success: false, message: 'Invite already pending for this user' });
+    }
+
+    whiteboard.inviteRequests.push({
+      userId: targetUserId,
+      status: 'pending',
+      createdAt: new Date(),
+    });
+
+    await whiteboard.save();
+    await whiteboard.populate({
+      path: 'inviteRequests.userId',
+      select: 'username email profilePicture',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Invite sent',
+      whiteboard,
+    });
+  } catch (error) {
+    console.error('Error inviting collaborator:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send invite',
+      error: error.message,
+    });
+  }
+};
+
+export const respondToInvite = async (req, res) => {
+  try {
+    const { whiteboardId, userId } = req.params;
+    const { action } = req.body; // accept | decline
+
+    if (!['accept', 'decline'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Invalid action' });
+    }
+
+    const whiteboard = await Whiteboard.findById(whiteboardId);
+
+    if (!whiteboard) {
+      return res.status(404).json({ success: false, message: 'Whiteboard not found' });
+    }
+
+    const invite = whiteboard.inviteRequests.find(
+      (request) => request.userId.toString() === userId.toString() && request.status === 'pending',
+    );
+
+    if (!invite) {
+      return res.status(404).json({ success: false, message: 'No pending invite found' });
+    }
+
+    invite.status = action === 'accept' ? 'accepted' : 'declined';
+    invite.respondedAt = new Date();
+
+    if (action === 'accept') {
+      const alreadyMember = whiteboard.members.some((memberId) => memberId.toString() === userId.toString());
+      if (!alreadyMember) {
+        whiteboard.members.push(userId);
+      }
+    }
+
+    await whiteboard.save();
+    await whiteboard.populate({
+      path: 'inviteRequests.userId',
+      select: 'username email profilePicture',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Invite ${action}ed`,
+      whiteboard,
+    });
+  } catch (error) {
+    console.error('Error responding to invite:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update invite',
+      error: error.message,
+    });
+  }
+};
+
+export const getUserInvites = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const whiteboards = await Whiteboard.find({
+      inviteRequests: {
+        $elemMatch: { userId, status: 'pending' },
+      },
+    })
+      .populate('owner', 'username profilePicture email')
+      .select('title description owner updatedAt inviteRequests shareCode allowGuests')
+      .lean();
+
+    const invites = whiteboards.map((board) => {
+      const invite = board.inviteRequests.find(
+        (request) => request.userId.toString() === userId.toString() && request.status === 'pending',
+      );
+      return {
+        whiteboardId: board._id,
+        title: board.title,
+        description: board.description,
+        owner: board.owner,
+        updatedAt: board.updatedAt,
+        inviteId: invite?._id,
+        createdAt: invite?.createdAt,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      invites,
+    });
+  } catch (error) {
+    console.error('Error fetching invites:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch invites',
       error: error.message,
     });
   }

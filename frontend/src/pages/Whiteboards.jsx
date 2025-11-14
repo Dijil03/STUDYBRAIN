@@ -13,6 +13,9 @@ import {
   Shield,
   Star,
   Loader2,
+  Inbox,
+  Check,
+  X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import WhiteboardService from '../services/whiteboardService';
@@ -54,10 +57,14 @@ const Whiteboards = () => {
   });
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState('');
+  const [invites, setInvites] = useState([]);
+  const [invitesLoading, setInvitesLoading] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState('');
 
   useEffect(() => {
     if (!userId) return;
     loadWhiteboards();
+    loadInvites();
   }, [userId]);
 
   const loadWhiteboards = async () => {
@@ -76,6 +83,38 @@ const Whiteboards = () => {
       setError(error.response?.data?.message || error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadInvites = async () => {
+    try {
+      setInvitesLoading(true);
+      const response = await WhiteboardService.getInvites(userId);
+      setInvites(response.data?.invites || []);
+    } catch (err) {
+      console.error('Failed to load invites', err);
+    } finally {
+      setInvitesLoading(false);
+    }
+  };
+
+  const handleRespondInvite = async (whiteboardId, action) => {
+    try {
+      setInviteMessage('');
+      await WhiteboardService.respondInvite(userId, whiteboardId, { action });
+      setInvites((prev) => prev.filter((invite) => invite.whiteboardId !== whiteboardId));
+      if (action === 'accept') {
+        await loadWhiteboards();
+        setInviteMessage('Invite accepted! Opening board...');
+        setTimeout(() => setInviteMessage(''), 2500);
+        navigate(`/whiteboards/${whiteboardId}`);
+      } else {
+        setInviteMessage('Invite declined.');
+        setTimeout(() => setInviteMessage(''), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to update invite', err);
+      setInviteMessage(err.response?.data?.message || err.message);
     }
   };
 
@@ -216,6 +255,60 @@ const Whiteboards = () => {
             </button>
           </div>
         </header>
+
+        {(invitesLoading || invites.length > 0) && (
+          <section className="mb-8 rounded-3xl border border-white/10 bg-slate-950/70 p-5 shadow-2xl shadow-slate-950/40">
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-cyan-500/15 p-3 text-cyan-300">
+                <Inbox className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-cyan-300/80">Whiteboard inbox</p>
+                <h2 className="text-lg font-semibold text-white">Invitations waiting</h2>
+                {inviteMessage && <p className="text-xs text-cyan-100">{inviteMessage}</p>}
+              </div>
+            </div>
+            {invitesLoading && (
+              <div className="mt-4 flex items-center gap-2 text-sm text-slate-300">
+                <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />
+                Loading invites...
+              </div>
+            )}
+            {!invitesLoading && invites.length === 0 && (
+              <p className="mt-4 text-sm text-slate-400">No invites right now. When someone shares a board with you, it will appear here.</p>
+            )}
+            {!invitesLoading && invites.length > 0 && (
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                {invites.map((invite) => (
+                  <div
+                    key={invite.whiteboardId}
+                    className="rounded-3xl border border-white/10 bg-slate-900/70 p-4"
+                  >
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/60">From {invite.owner?.username || 'StudyBrain user'}</p>
+                    <h3 className="mt-2 text-lg font-semibold text-white">{invite.title}</h3>
+                    <p className="mt-1 text-sm text-slate-300">{invite.description || 'Shared workspace invitation'}</p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        onClick={() => handleRespondInvite(invite.whiteboardId, 'accept')}
+                        className="inline-flex items-center rounded-2xl bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/60"
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleRespondInvite(invite.whiteboardId, 'decline')}
+                        className="inline-flex items-center rounded-2xl border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-rose-400/60 hover:text-rose-200"
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="relative w-full md:w-2/3">

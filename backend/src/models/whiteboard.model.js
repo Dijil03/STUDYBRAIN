@@ -7,6 +7,13 @@ const collaboratorSchema = new Schema({
   role: { type: String, enum: ['editor', 'viewer'], default: 'editor' },
 }, { _id: false });
 
+const inviteRequestSchema = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  status: { type: String, enum: ['pending', 'accepted', 'declined'], default: 'pending' },
+  createdAt: { type: Date, default: Date.now },
+  respondedAt: { type: Date },
+}, { _id: false });
+
 const whiteboardSchema = new Schema({
   title: { type: String, required: true, trim: true },
   description: { type: String, trim: true },
@@ -28,11 +35,13 @@ const whiteboardSchema = new Schema({
   thumbnail: { type: String },
   shareCode: { type: String, unique: true },
   allowGuests: { type: Boolean, default: false },
+  inviteRequests: { type: [inviteRequestSchema], default: [] },
 }, { timestamps: true });
 
 whiteboardSchema.index({ owner: 1, updatedAt: -1 });
 whiteboardSchema.index({ members: 1 });
 whiteboardSchema.index({ shareCode: 1 });
+whiteboardSchema.index({ 'inviteRequests.userId': 1, 'inviteRequests.status': 1 });
 
 const Whiteboard = mongoose.model('Whiteboard', whiteboardSchema);
 
