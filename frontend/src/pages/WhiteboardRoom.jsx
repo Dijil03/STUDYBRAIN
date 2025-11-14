@@ -13,7 +13,7 @@ import {
   Sparkles,
   Save,
   Grid,
-  GridOff,
+  SquareDashed,
   Shield,
   Loader2,
 } from 'lucide-react';
@@ -534,7 +534,7 @@ const WhiteboardRoom = () => {
                 </>
               ) : (
                 <>
-                  <GridOff className="mr-1 inline h-4 w-4" />
+                  <SquareDashed className="mr-1 inline h-4 w-4" />
                   Grid off
                 </>
               )}
