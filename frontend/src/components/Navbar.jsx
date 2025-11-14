@@ -244,6 +244,7 @@ const Navbar = () => {
     { name: 'Dashboard', path: '/dashboard', icon: Home, color: 'text-blue-400' },
     { name: 'AI Assistant', path: '/ai', icon: Sparkles, color: 'text-indigo-400' },
     { name: 'Analytics', path: '/analytics', icon: BarChart3, color: 'text-cyan-400' },
+    { name: 'Whiteboard', path: '/whiteboards', icon: PenTool, color: 'text-cyan-300' },
     { name: 'Study Time', path: '/study-time', icon: BookOpen, color: 'text-green-400' },
     { name: 'Homework', path: '/homework', icon: Target, color: 'text-orange-400' },
     { name: 'Week Plan', path: '/week-plan', icon: Calendar, color: 'text-purple-400' },
