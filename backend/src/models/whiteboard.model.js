@@ -26,10 +26,13 @@ const whiteboardSchema = new Schema({
   lastSavedAt: { type: Date, default: Date.now },
   isArchived: { type: Boolean, default: false },
   thumbnail: { type: String },
+  shareCode: { type: String, unique: true },
+  allowGuests: { type: Boolean, default: false },
 }, { timestamps: true });
 
 whiteboardSchema.index({ owner: 1, updatedAt: -1 });
 whiteboardSchema.index({ members: 1 });
+whiteboardSchema.index({ shareCode: 1 });
 
 const Whiteboard = mongoose.model('Whiteboard', whiteboardSchema);
 

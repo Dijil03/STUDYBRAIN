@@ -16,7 +16,10 @@ import {
   SquareDashed,
   Shield,
   Loader2,
+  Share2,
+  Link2,
 } from 'lucide-react';
+import Navbar from '../components/Navbar';
 import WhiteboardService from '../services/whiteboardService';
 import { getSocketUrl } from '../utils/apiConfig';
 
@@ -79,11 +82,20 @@ const WhiteboardRoom = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [shareCopyStatus, setShareCopyStatus] = useState('');
+  const [shareUpdating, setShareUpdating] = useState(false);
+  const [linkRefreshing, setLinkRefreshing] = useState(false);
   const collaboratorList = useMemo(
     () => participants.filter((person) => person.userId !== userId),
     [participants, userId],
   );
   const onlineCount = participants.length || 1;
+  const inviteLink = useMemo(() => {
+    if (typeof window === 'undefined' || !whiteboard?._id) return '';
+    const origin = window.location.origin;
+    const codeSegment = whiteboard.shareCode ? `?code=${whiteboard.shareCode}` : '';
+    return `${origin}/whiteboards/${whiteboard._id}${codeSegment}`;
+  }, [whiteboard]);
 
   const devicePixelRatioValue = window.devicePixelRatio || 1;
 
@@ -219,6 +231,57 @@ const WhiteboardRoom = () => {
   const handleToggleGrid = () => {
     dirtyRef.current = true;
     setShowGrid((prev) => !prev);
+  };
+
+  const handleCopyInviteLink = async () => {
+    if (!inviteLink || typeof navigator === 'undefined' || !navigator.clipboard) {
+      setShareCopyStatus('Copy not supported');
+      setTimeout(() => setShareCopyStatus(''), 2500);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setShareCopyStatus('Link copied!');
+      setTimeout(() => setShareCopyStatus(''), 2500);
+    } catch (err) {
+      console.error('Failed to copy link', err);
+      setShareCopyStatus('Copy failed');
+      setTimeout(() => setShareCopyStatus(''), 2500);
+    }
+  };
+
+  const handleToggleAllowGuests = async () => {
+    if (!whiteboard) return;
+    try {
+      setShareUpdating(true);
+      const response = await WhiteboardService.updateMeta(userId, whiteboardId, {
+        allowGuests: !whiteboard.allowGuests,
+      });
+      const updatedBoard = response.data?.whiteboard || whiteboard;
+      setWhiteboard(updatedBoard);
+    } catch (err) {
+      console.error('Failed to toggle guest access', err);
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setShareUpdating(false);
+    }
+  };
+
+  const handleRegenerateShareLink = async () => {
+    if (!whiteboard) return;
+    try {
+      setLinkRefreshing(true);
+      const response = await WhiteboardService.updateMeta(userId, whiteboardId, {
+        regenerateShareCode: true,
+      });
+      const updatedBoard = response.data?.whiteboard || whiteboard;
+      setWhiteboard(updatedBoard);
+    } catch (err) {
+      console.error('Failed to refresh share code', err);
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setLinkRefreshing(false);
+    }
   };
 
   const persistCanvas = useCallback(async () => {
@@ -370,25 +433,30 @@ const WhiteboardRoom = () => {
 
   if (!userId) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center px-4">
-        <div className="max-w-lg rounded-3xl border border-white/10 bg-slate-900/60 p-8 text-center shadow-2xl">
-          <Shield className="mx-auto h-12 w-12 text-rose-400" />
-          <p className="mt-4 text-lg font-semibold text-white">Sign in required</p>
-          <p className="mt-2 text-slate-300">Collaborative boards are available once you&apos;re logged in.</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="mt-6 rounded-2xl bg-white/10 px-6 py-3 font-semibold text-white"
-          >
-            Go to Login
-          </button>
+      <>
+        <Navbar />
+        <div className="flex min-h-[70vh] items-center justify-center bg-slate-950 px-4 pt-24">
+          <div className="max-w-lg rounded-3xl border border-white/10 bg-slate-900/60 p-8 text-center shadow-2xl">
+            <Shield className="mx-auto h-12 w-12 text-rose-400" />
+            <p className="mt-4 text-lg font-semibold text-white">Sign in required</p>
+            <p className="mt-2 text-slate-300">Collaborative boards are available once you&apos;re logged in.</p>
+            <button
+              onClick={() => navigate('/login')}
+              className="mt-6 rounded-2xl bg-white/10 px-6 py-3 font-semibold text-white"
+            >
+              Go to Login
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950/95 text-white">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-slate-950/90 px-4 py-4 backdrop-blur-xl">
+    <div className="min-h-screen bg-slate-950 text-white">
+      <Navbar />
+      <div className="flex min-h-screen flex-col bg-slate-950/95 pt-24">
+      <header className="sticky top-20 z-30 border-b border-white/10 bg-slate-950/90 px-4 py-4 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3">
           <button
             onClick={() => navigate('/whiteboards')}
@@ -431,6 +499,64 @@ const WhiteboardRoom = () => {
                 </>
               )}
             </button>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-4 flex max-w-6xl flex-col gap-4">
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="flex-1">
+                <p className="text-xs uppercase tracking-[0.4em] text-cyan-300/80">Invite link</p>
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                  <div className="flex flex-1 items-center rounded-2xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-slate-200">
+                    <Link2 className="mr-2 h-4 w-4 text-cyan-300" />
+                    <span className="truncate">{inviteLink || 'Generating link...'}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleCopyInviteLink}
+                      className="inline-flex items-center rounded-2xl border border-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-cyan-400/40 hover:text-cyan-100"
+                    >
+                      <Share2 className="mr-2 h-4 w-4" />
+                      Copy
+                    </button>
+                    <button
+                      onClick={handleRegenerateShareLink}
+                      disabled={linkRefreshing}
+                      className="inline-flex items-center rounded-2xl border border-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-amber-400/40 hover:text-amber-100 disabled:opacity-60"
+                    >
+                      {linkRefreshing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Refreshing
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Refresh link
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {shareCopyStatus && (
+                  <p className="mt-2 text-xs text-cyan-200">{shareCopyStatus}</p>
+                )}
+              </div>
+              <button
+                onClick={handleToggleAllowGuests}
+                disabled={shareUpdating}
+                className={`inline-flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition ${whiteboard?.allowGuests ? 'bg-cyan-500/20 text-cyan-100' : 'bg-white/5 text-slate-300'} disabled:opacity-60`}
+              >
+                <span className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Allow everyone with link
+                </span>
+                <span className={`ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs uppercase tracking-[0.3em] ${whiteboard?.allowGuests ? 'bg-cyan-500/40 text-white' : 'bg-white/10 text-slate-300'}`}>
+                  {shareUpdating ? '...' : whiteboard?.allowGuests ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -603,6 +729,7 @@ const WhiteboardRoom = () => {
           </section>
         </div>
       </main>
+      </div>
     </div>
   );
 };

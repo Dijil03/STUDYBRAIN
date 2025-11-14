@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import Whiteboard from '../models/whiteboard.model.js';
 import User from '../models/auth.model.js';
 
@@ -8,6 +9,8 @@ const ensureAccess = (whiteboard, userId) => {
   const collaboratorMatch = whiteboard.collaborators?.some((collab) => collab.userId?.toString() === userId.toString());
   return ownerMatch || memberMatch || collaboratorMatch;
 };
+
+const generateShareCode = () => crypto.randomBytes(6).toString('hex');
 
 export const createWhiteboard = async (req, res) => {
   try {
@@ -27,6 +30,7 @@ export const createWhiteboard = async (req, res) => {
       title: title.trim(),
       description: description?.trim(),
       owner: userId,
+      shareCode: generateShareCode(),
       canvasData: {
         paths: [],
         background: background || '#0f172a',
@@ -99,6 +103,11 @@ export const getWhiteboardById = async (req, res) => {
 
     if (!ensureAccess(whiteboard, userId)) {
       return res.status(403).json({ success: false, message: 'You do not have access to this whiteboard' });
+    }
+
+    if (!whiteboard.shareCode) {
+      whiteboard.shareCode = generateShareCode();
+      await whiteboard.save();
     }
 
     res.status(200).json({
@@ -176,7 +185,7 @@ export const saveWhiteboardCanvas = async (req, res) => {
 export const updateWhiteboardMeta = async (req, res) => {
   try {
     const { whiteboardId, userId } = req.params;
-    const { title, description, members } = req.body;
+    const { title, description, members, allowGuests, regenerateShareCode } = req.body;
 
     const whiteboard = await Whiteboard.findById(whiteboardId);
 
@@ -198,6 +207,14 @@ export const updateWhiteboardMeta = async (req, res) => {
 
     if (Array.isArray(members)) {
       whiteboard.members = members;
+    }
+
+    if (typeof allowGuests === 'boolean') {
+      whiteboard.allowGuests = allowGuests;
+    }
+
+    if (regenerateShareCode) {
+      whiteboard.shareCode = generateShareCode();
     }
 
     await whiteboard.save();
