@@ -55,6 +55,8 @@ const Personalization = lazy(() => import("./pages/Personalization"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const StudyCoach = lazy(() => import("./pages/StudyCoach"));
 const StudyMaterialLibrary = lazy(() => import("./pages/StudyMaterialLibrary"));
+const Whiteboards = lazy(() => import("./pages/Whiteboards"));
+const WhiteboardRoom = lazy(() => import("./pages/WhiteboardRoom"));
 
 const App = () => {
   return (
@@ -116,6 +118,8 @@ const App = () => {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/study-coach" element={<StudyCoach />} />
             <Route path="/study-materials" element={<StudyMaterialLibrary />} />
+            <Route path="/whiteboards" element={<Whiteboards />} />
+            <Route path="/whiteboards/:whiteboardId" element={<WhiteboardRoom />} />
             </Routes>
             </Suspense>
             <FloatingAICoach />

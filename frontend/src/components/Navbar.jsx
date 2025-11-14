@@ -55,6 +55,7 @@ import {
   Sparkles as SparklesIcon,
   GraduationCap,
   Leaf,
+  PenTool,
 } from 'lucide-react';
 import SimpleMusicPlayer from './SimpleMusicPlayer';
 
@@ -281,6 +282,7 @@ const Navbar = () => {
     { name: 'Google Classroom', path: '/google-classroom', icon: GraduationCap, color: 'text-blue-400' },
     { name: 'Documents', path: '/documents', icon: Folder, color: 'text-blue-500' },
     { name: 'Folder Manager', path: '/folder-manager', icon: FolderOpen, color: 'text-blue-600' },
+    { name: 'Whiteboards', path: '/whiteboards', icon: PenTool, color: 'text-cyan-400' },
     { name: 'Community', path: '/community', icon: Users, color: 'text-teal-400' },
     { name: 'Weekly Homework Log', path: '/weekly-homework-log', icon: BarChart3, color: 'text-orange-500' },
     { name: 'Exam Time', path: '/exam-time', icon: Clock, color: 'text-red-500' },
