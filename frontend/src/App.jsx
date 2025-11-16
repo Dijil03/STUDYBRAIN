@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import ThemeWrapper from "./components/ThemeWrapper";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LoadingSkeleton from "./components/LoadingSkeleton";
@@ -58,71 +58,82 @@ const StudyMaterialLibrary = lazy(() => import("./pages/StudyMaterialLibrary"));
 const Whiteboards = lazy(() => import("./pages/Whiteboards"));
 const WhiteboardRoom = lazy(() => import("./pages/WhiteboardRoom"));
 
+const AppContent = () => {
+  const location = useLocation();
+  const isStudyCoachPage = location.pathname === '/study-coach';
+
+  return (
+    <>
+      <Suspense fallback={<LoadingSkeleton />}>
+        <Routes>
+          <Route path="/" element={<Welcome />} />
+          
+          {/* Public auth routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/personalize" element={<Personalization />} />
+          
+          {/* Protected routes */}
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/homework" element={<Homework />} />
+          <Route path="/week-plan" element={<WeekPlan />} />
+          <Route path="/study-time" element={<StudyTime />} />
+          <Route path="/study-timer" element={<StudyTimer />} />
+          <Route path="/motivation" element={<Motivation />} />
+          <Route path="/myworld" element={<MyWorld />} />
+          <Route path="/goals" element={<Goals />} />
+          <Route path="/note" element={<Note />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/weekly-homework-log" element={<WeeklyHomeworkLog />} />
+          <Route path="/exam-time" element={<ExamTime />} />
+          <Route path="/flashcard" element={<Flashcard />} />
+          <Route path="/flashcards" element={<FlashcardGenerator />} />
+          <Route path="/flashcard-viewer" element={<FlashcardViewer />} />
+          <Route path="/badges" element={<Badges />} />
+          <Route path="/assessments" element={<Assessments />} />
+          <Route path="/study-journal" element={<StudyJournal />} />
+          <Route path="/folder-manager" element={<FolderManager />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/document-editor" element={<DocumentEditor />} />
+          <Route path="/document-editor/:documentId" element={<DocumentEditor />} />
+          <Route path="/google-classroom" element={<GoogleClassroom />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/subscription" element={<Subscription />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/stripe-setup" element={<StripeSetup />} />
+          <Route path="/stripe-pricing" element={<StripePricing />} />
+          <Route path="/payment-form" element={<PaymentForm />} />
+          <Route path="/test-subscription" element={<TestSubscription />} />
+          <Route path="/cancellation-success" element={<CancellationSuccess />} />
+          <Route path="/loading-demo" element={<LoadingDemo />} />
+          <Route path="/ai" element={<AI />} />
+          <Route path="/ai-tutor" element={<AITutorPage />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/revisions" element={<RevisionScheduler />} />
+          <Route path="/concept-map" element={<ConceptMastery />} />
+          <Route path="/focus-garden" element={<FocusGarden />} />
+          <Route path="/study-groups" element={<StudyGroups />} />
+          <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
+          <Route path="/study-groups/invite/:inviteToken" element={<JoinViaInvite />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/study-coach" element={<StudyCoach />} />
+          <Route path="/study-materials" element={<StudyMaterialLibrary />} />
+          <Route path="/whiteboards" element={<Whiteboards />} />
+          <Route path="/whiteboards/:whiteboardId" element={<WhiteboardRoom />} />
+        </Routes>
+      </Suspense>
+      {!isStudyCoachPage && <FloatingAICoach />}
+    </>
+  );
+};
+
 const App = () => {
   return (
     <SEOProvider>
       <ErrorBoundary>
         <ThemeWrapper>
-            <Suspense fallback={<LoadingSkeleton />}>
-              <Routes>
-            <Route path="/" element={<Welcome />} />
-            
-            {/* Public auth routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/personalize" element={<Personalization />} />
-            
-            {/* Protected routes */}
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/homework" element={<Homework />} />
-            <Route path="/week-plan" element={<WeekPlan />} />
-            <Route path="/study-time" element={<StudyTime />} />
-            <Route path="/study-timer" element={<StudyTimer />} />
-            <Route path="/motivation" element={<Motivation />} />
-            <Route path="/myworld" element={<MyWorld />} />
-            <Route path="/goals" element={<Goals />} />
-            <Route path="/note" element={<Note />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/weekly-homework-log" element={<WeeklyHomeworkLog />} />
-            <Route path="/exam-time" element={<ExamTime />} />
-            <Route path="/flashcard" element={<Flashcard />} />
-            <Route path="/flashcards" element={<FlashcardGenerator />} />
-            <Route path="/flashcard-viewer" element={<FlashcardViewer />} />
-            <Route path="/badges" element={<Badges />} />
-            <Route path="/assessments" element={<Assessments />} />
-            <Route path="/study-journal" element={<StudyJournal />} />
-            <Route path="/folder-manager" element={<FolderManager />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/document-editor" element={<DocumentEditor />} />
-            <Route path="/document-editor/:documentId" element={<DocumentEditor />} />
-            <Route path="/google-classroom" element={<GoogleClassroom />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/subscription" element={<Subscription />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/stripe-setup" element={<StripeSetup />} />
-            <Route path="/stripe-pricing" element={<StripePricing />} />
-            <Route path="/payment-form" element={<PaymentForm />} />
-            <Route path="/test-subscription" element={<TestSubscription />} />
-            <Route path="/cancellation-success" element={<CancellationSuccess />} />
-            <Route path="/loading-demo" element={<LoadingDemo />} />
-            <Route path="/ai" element={<AI />} />
-            <Route path="/ai-tutor" element={<AITutorPage />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/revisions" element={<RevisionScheduler />} />
-            <Route path="/concept-map" element={<ConceptMastery />} />
-            <Route path="/focus-garden" element={<FocusGarden />} />
-            <Route path="/study-groups" element={<StudyGroups />} />
-            <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
-            <Route path="/study-groups/invite/:inviteToken" element={<JoinViaInvite />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/study-coach" element={<StudyCoach />} />
-            <Route path="/study-materials" element={<StudyMaterialLibrary />} />
-            <Route path="/whiteboards" element={<Whiteboards />} />
-            <Route path="/whiteboards/:whiteboardId" element={<WhiteboardRoom />} />
-            </Routes>
-            </Suspense>
-            <FloatingAICoach />
+          <AppContent />
         </ThemeWrapper>
       </ErrorBoundary>
     </SEOProvider>

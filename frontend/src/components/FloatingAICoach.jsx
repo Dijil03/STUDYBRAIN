@@ -37,7 +37,7 @@ const FloatingAICoach = () => {
       const userId = localStorage.getItem('userId');
       if (!userId) return;
 
-      const response = await api.post('/ai/chat/session', { userId });
+      const response = await api.post('/ai/sessions');
       if (response.data.success) {
         setSessionId(response.data.data.sessionId);
       }
@@ -126,7 +126,7 @@ const FloatingAICoach = () => {
 
       // Use AI chat endpoint with study coach context
       const API_BASE_URL = api.defaults?.baseURL || 'http://localhost:5001/api';
-      const response = await fetch(`${API_BASE_URL}/ai/chat/message`, {
+      const response = await fetch(`${API_BASE_URL}/ai/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -134,8 +134,7 @@ const FloatingAICoach = () => {
         credentials: 'include',
         body: JSON.stringify({
           sessionId: sessionId || 'coach-session',
-          message: `${userContext ? `[Context: ${userContext}] ` : ''}As Coach Brain, the AI Study Coach, respond to: ${userMessage.content}`,
-          context: 'study_coach'
+          message: `${userContext ? `[Context: ${userContext}] ` : ''}As Coach Brain, the AI Study Coach, respond to: ${userMessage.content}`
         })
       });
 
