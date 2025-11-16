@@ -94,6 +94,14 @@ export const createChatSession = async (req, res) => {
 
 // Send a message and get AI response (streaming)
 export const sendMessage = async (req, res) => {
+  // Set CORS headers at the very beginning to support credentials
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie');
+  }
+
   try {
     // Get userId from req.user or use a fallback
     let userId = req.user?.userId || req.user?.id;
@@ -143,12 +151,10 @@ export const sendMessage = async (req, res) => {
       }))
     ];
 
-    // Set up streaming response
+    // Set up streaming response headers
     res.setHeader('Content-Type', 'text/plain');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
 
     let fullResponse = '';
     let tokenCount = 0;
